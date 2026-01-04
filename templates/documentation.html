@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>System Documentation - SmartDiet AI</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Favicon -->
+    <link href="../static/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+        rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/style.css" rel="stylesheet">
+    <link href="../static/styles.css" rel="stylesheet">
+
+    <style>
+        /* ===== THEME COLORS ===== */
+        :root {
+            --dark-bg: #0F172B;
+            --accent: #FEA116;
+            --card-bg: #ffffff;
+            --text-dark: #0F172B;
+            --text-muted: #6c757d;
+        }
+
+        /* ===== HERO HEADER ===== */
+        .hero-header {
+            background: linear-gradient(to right,
+                    rgba(222, 137, 26, 0.95),
+                    rgba(219, 87, 5, 0.95));
+            padding: 60px 0;
+        }
+
+        /* ===== DOCUMENTATION CONTENT ===== */
+        .doc-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            margin-bottom: 30px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .doc-content h2 {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .doc-content h3 {
+            color: var(--text-dark);
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .doc-content h4 {
+            color: var(--accent);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .doc-content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #e83e8c;
+            font-family: 'Courier New', monospace;
+        }
+
+        .doc-content pre {
+            background: #f8f9fa;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .doc-content pre code {
+            background: transparent;
+            color: #333;
+            padding: 0;
+        }
+
+        .doc-content ul,
+        .doc-content ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .doc-content li {
+            margin-bottom: 8px;
+        }
+
+        .doc-content table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .doc-content table th {
+            background: var(--accent);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .doc-content table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .doc-content table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .feature-box {
+            background: #fff3cd;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            color: var(--accent);
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc a:hover {
+            color: var(--accent);
+        }
+
+        .btn-back {
+            background: linear-gradient(45deg, #6c757d, #495057);
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 30px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.35);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.45);
+            color: #fff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+        <a href="/" class="navbar-brand p-0">
+            <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet AI</h1>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-nav ms-auto py-0 pe-4">
+                <a href="/" class="nav-item nav-link">Home</a>
+                <a href="/about1" class="nav-item nav-link">About</a>
+                <a href="/documentation" class="nav-item nav-link active">Documentation</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================= HERO ================= -->
+    <div class="container-fluid hero-header mb-5">
+        <div class="container text-center">
+            <h1 class="display-4 text-white animated slideInDown">
+                <i class="fas fa-book"></i> System Documentation
+            </h1>
+            <p class="text-white">Complete guide to SmartDiet AI features and functionality</p>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <div class="doc-content">
+
+            <!-- Table of Contents -->
+            <div class="toc">
+                <h3><i class="fas fa-list"></i> Table of Contents</h3>
+                <ul>
+                    <li><a href="#overview">1. System Overview</a></li>
+                    <li><a href="#features">2. Key Features</a></li>
+                    <li><a href="#getting-started">3. Getting Started</a></li>
+                    <li><a href="#food-detection">4. AI Food Detection</a></li>
+                    <li><a href="#tracking">5. Food Tracking</a></li>
+                    <li><a href="#recommendations">6. Diet Recommendations</a></li>
+                    <li><a href="#progress">7. Progress Monitoring</a></li>
+                    <li><a href="#profile">8. Profile Management</a></li>
+                    <li><a href="#tech-stack">9. Technology Stack</a></li>
+                </ul>
+            </div>
+
+            <!-- System Overview -->
+            <h2 id="overview"><i class="fas fa-info-circle"></i> System Overview</h2>
+            <p>
+                <strong>SmartDiet AI</strong> is an intelligent diet and nutrition tracking application that combines
+                artificial intelligence,
+                machine learning, and nutritional science to help users achieve their health and fitness goals.
+            </p>
+
+            <div class="feature-box">
+                <strong>🎯 Mission:</strong> Simplify nutrition tracking and provide personalized diet recommendations
+                using AI technology.
+            </div>
+
+            <!-- Key Features -->
+            <h2 id="features"><i class="fas fa-star"></i> Key Features</h2>
+
+            <h3>1. AI-Powered Food Detection</h3>
+            <ul>
+                <li><strong>YOLO v8 Object Detection:</strong> Upload a photo of your meal and let AI identify food
+                    items</li>
+                <li><strong>Automatic Calorie Estimation:</strong> Estimates portion sizes and calculates calories</li>
+                <li><strong>35+ Indian Foods:</strong> Specialized model trained on Indian cuisine</li>
+                <li><strong>Visual Feedback:</strong> See bounding boxes and nutrition info on your image</li>
+            </ul>
+
+            <h3>2. Manual Food Tracking</h3>
+            <ul>
+                <li><strong>Search & Add:</strong> Search for any food item with portion sizes</li>
+                <li><strong>Meal Categories:</strong> Track Breakfast, Lunch, Snacks, and Dinner separately</li>
+                <li><strong>Real-time Macros:</strong> See protein, carbs, and fat progress with visual indicators</li>
+                <li><strong>Daily Summaries:</strong> Pie charts showing your progress towards daily goals</li>
+            </ul>
+
+            <h3>3. ML-Based Diet Recommendations</h3>
+            <ul>
+                <li><strong>Personalized Meal Plans:</strong> Get AI-generated meal suggestions</li>
+                <li><strong>Dietary Preferences:</strong> Respects vegan/vegetarian choices</li>
+                <li><strong>Allergy Safety:</strong> Filters out allergens automatically</li>
+                <li><strong>Meal Time Appropriate:</strong> Different suggestions for breakfast, lunch, and dinner</li>
+            </ul>
+
+            <h3>4. Progress Analytics</h3>
+            <ul>
+                <li><strong>Weight Tracking:</strong> Daily and weekly weight charts</li>
+                <li><strong>Detailed Reports:</strong> View nutrition breakdown for any day or week</li>
+                <li><strong>Trend Analysis:</strong> Visualize your journey over time</li>
+                <li><strong>Calorie Deficit Calculation:</strong> See how you're progressing towards goals</li>
+            </ul>
+
+            <!-- Getting Started -->
+            <h2 id="getting-started"><i class="fas fa-play-circle"></i> Getting Started</h2>
+
+            <h3>Step 1: Registration</h3>
+            <ol>
+                <li>Click "Register" on the home page</li>
+                <li>Enter your email and create a strong password (must include uppercase, lowercase, digit, and special
+                    character)</li>
+                <li>Submit the registration form</li>
+            </ol>
+
+            <h3>Step 2: Profile Setup</h3>
+            <ol>
+                <li>After login, you'll be directed to profile setup</li>
+                <li>Enter your personal details:
+                    <ul>
+                        <li>Age, gender, weight, height</li>
+                        <li>Activity level (sedentary to extra active)</li>
+                        <li>Dietary preferences (vegan/non-vegan)</li>
+                        <li>Any food allergies</li>
+                    </ul>
+                </li>
+                <li>The system automatically calculates:
+                    <ul>
+                        <li><strong>BMI:</strong> Body Mass Index</li>
+                        <li><strong>BMR:</strong> Basal Metabolic Rate</li>
+                        <li><strong>Daily Calories:</strong> Based on your activity level</li>
+                        <li><strong>Macros:</strong> Protein, carbs, and fat targets</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <!-- Food Detection -->
+            <h2 id="food-detection"><i class="fas fa-camera"></i> AI Food Detection</h2>
+
+            <h3>How It Works</h3>
+            <ol>
+                <li>Navigate to "Detect Food" from the home page</li>
+                <li>Upload an image of your meal (JPG, JPEG, or PNG)</li>
+                <li>The YOLO model detects all food items in the image</li>
+                <li>Each detected item shows:
+                    <ul>
+                        <li>Food name</li>
+                        <li>Estimated portion size (grams)</li>
+                        <li>Calories</li>
+                        <li>Macronutrients (protein, carbs, fat)</li>
+                    </ul>
+                </li>
+                <li>Total calories for the entire meal are calculated</li>
+            </ol>
+
+            <div class="feature-box">
+                <strong>💡 Tip:</strong> For best results, take photos with the food clearly visible. A plate in the
+                image helps with portion size estimation!
+            </div>
+
+            <h3>Supported Foods</h3>
+            <p>The model recognizes 35+ Indian food items including:</p>
+            <ul>
+                <li><strong>Breads:</strong> Chapati, Naan, Puri</li>
+                <li><strong>Rice:</strong> White Rice, Biryani</li>
+                <li><strong>Curries:</strong> Dal, Palak Paneer, Chole, Rajma</li>
+                <li><strong>Snacks:</strong> Samosa, Pakoda, Vada</li>
+                <li><strong>Sweets:</strong> Gulab Jamun, Jalebi, Rasmalai</li>
+                <li><strong>Beverages:</strong> Chai, Lassi</li>
+                <li>And many more!</li>
+            </ul>
+
+            <!-- Tracking -->
+            <h2 id="tracking"><i class="fas fa-clipboard-list"></i> Food Tracking</h2>
+
+            <h3>Adding Food Manually</h3>
+            <ol>
+                <li>Go to "Tracking" page</li>
+                <li>Click "Add Food" for the desired meal time</li>
+                <li>Enter:
+                    <ul>
+                        <li>Food name</li>
+                        <li>Portion size (number)</li>
+                        <li>Unit (grams, cup, piece, small/medium/large)</li>
+                    </ul>
+                </li>
+                <li>The system fetches nutrition data from Spoonacular API</li>
+                <li>Food is added to your daily log</li>
+            </ol>
+
+            <h3>Viewing Progress</h3>
+            <p>The tracking page shows:</p>
+            <ul>
+                <li><strong>Meal Lists:</strong> All foods you've eaten for each meal</li>
+                <li><strong>Progress Circles:</strong> Visual indicators for calories, protein, carbs, and fat</li>
+                <li><strong>Percentage Complete:</strong> How close you are to daily goals</li>
+                <li><strong>Remove Option:</strong> Delete foods if entered incorrectly</li>
+            </ul>
+
+            <!-- Recommendations -->
+            <h2 id="recommendations"><i class="fas fa-lightbulb"></i> Diet Recommendations</h2>
+
+            <h3>Getting Recommendations</h3>
+            <ol>
+                <li>Navigate to "Recommendation" from the dashboard</li>
+                <li>The ML model analyzes:
+                    <ul>
+                        <li>Your dietary preferences</li>
+                        <li>Allergies</li>
+                        <li>Nutritional needs</li>
+                        <li>Meal time</li>
+                    </ul>
+                </li>
+                <li>Receive personalized suggestions for:
+                    <ul>
+                        <li>Breakfast</li>
+                        <li>Lunch</li>
+                        <li>Snacks</li>
+                        <li>Dinner</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3>Recommendation Features</h3>
+            <ul>
+                <li><strong>Nutritional Balance:</strong> Each recommendation includes full nutrition info</li>
+                <li><strong>Variety:</strong> Different foods for each meal time</li>
+                <li><strong>Safety Checks:</strong> Automatically filters out allergens</li>
+                <li><strong>Preference Aware:</strong> Respects vegan/vegetarian choices</li>
+            </ul>
+
+            <div class="feature-box">
+                <strong>🔄 Refresh:</strong> Click "Modify Preferences" to get new recommendations or "Clear Today's
+                Plan" to reset.
+            </div>
+
+            <!-- Progress -->
+            <h2 id="progress"><i class="fas fa-chart-line"></i> Progress Monitoring</h2>
+
+            <h3>Daily Progress</h3>
+            <ul>
+                <li>View line chart of your weight over time</li>
+                <li>Click "More Details" to see specific day data</li>
+                <li>See calories consumed vs. goal</li>
+                <li>Track calorie deficit or surplus</li>
+            </ul>
+
+            <h3>Weekly Summary</h3>
+            <ul>
+                <li>Average weight for each week</li>
+                <li>Average daily calories, protein, carbs, fat</li>
+                <li>Net calorie deficit for the week</li>
+                <li>Analysis of weight changes</li>
+            </ul>
+
+            <!-- Profile -->
+            <h2 id="profile"><i class="fas fa-user"></i> Profile Management</h2>
+
+            <h3>View Your Profile</h3>
+            <p>The profile page displays:</p>
+            <ul>
+                <li><strong>Personal Info:</strong> Name, age, weight, height, body fat %</li>
+                <li><strong>Journey Info:</strong> Days since you started, dietary preferences</li>
+                <li><strong>Daily Requirements:</strong> Calories, protein, carbs, fat goals</li>
+            </ul>
+
+            <h3>Edit Profile</h3>
+            <ul>
+                <li>Update any personal information</li>
+                <li>Change activity level</li>
+                <li>Update dietary preferences</li>
+                <li>Modify allergy information</li>
+                <li>System automatically recalculates nutritional goals</li>
+            </ul>
+
+            <!-- Technology Stack -->
+            <h2 id="tech-stack"><i class="fas fa-code"></i> Technology Stack</h2>
+
+            <h3>Backend</h3>
+            <ul>
+                <li><strong>Framework:</strong> Flask (Python)</li>
+                <li><strong>Database:</strong> SQLite3</li>
+                <li><strong>APIs:</strong> Spoonacular (nutrition data)</li>
+            </ul>
+
+            <h3>AI/ML Components</h3>
+            <ul>
+                <li><strong>Object Detection:</strong> YOLO v8 (Ultralytics)</li>
+                <li><strong>Recommendations:</strong> XGBoost/Decision Tree</li>
+                <li><strong>Image Processing:</strong> OpenCV</li>
+                <li><strong>ML Libraries:</strong> scikit-learn, pandas, numpy</li>
+            </ul>
+
+            <h3>Frontend</h3>
+            <ul>
+                <li><strong>HTML/CSS/JavaScript</strong></li>
+                <li><strong>Bootstrap 4:</strong> Responsive design</li>
+                <li><strong>Chart.js:</strong> Progress visualization</li>
+                <li><strong>Font Awesome:</strong> Icons</li>
+            </ul>
+
+            <!-- Calculations -->
+            <h2 id="calculations"><i class="fas fa-calculator"></i> How Calculations Work</h2>
+
+            <h3>BMI (Body Mass Index)</h3>
+            <pre><code>BMI = weight (kg) / height (m)²</code></pre>
+
+            <h3>BMR (Basal Metabolic Rate) - Mifflin-St Jeor</h3>
+            <pre><code>Male: BMR = 10*weight(kg) + 6.25*height(cm) - 5*age + 5
+Female: BMR = 10*weight(kg) + 6.25*height(cm) - 5*age - 161</code></pre>
+
+            <h3>Daily Calorie Needs</h3>
+            <pre><code>Calories = BMR × Activity Multiplier
+Activity Multipliers:
+- Sedentary: 1.2
+- Lightly Active: 1.375
+- Moderately Active: 1.55
+- Very Active: 1.725
+- Extra Active: 1.9</code></pre>
+
+            <h3>Macro Distribution (for 500 kcal deficit)</h3>
+            <pre><code>Protein: 30% of calories → grams = (cal × 0.30) / 4
+Carbs: 40% of calories → grams = (cal × 0.40) / 4
+Fat: 30% of calories → grams = (cal × 0.30) / 9</code></pre>
+
+            <!-- Footer -->
+            <hr style="margin: 40px 0;">
+
+            <div class="text-center">
+                <p><strong>SmartDiet AI</strong> - Intelligent Nutrition Tracking & Diet Recommendations</p>
+                <p class="text-muted">Honours Project 2026 | Food Recognition & Recommendation System</p>
+                <a href="/" class="btn-back">Back to Home</a>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

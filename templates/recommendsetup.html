@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Recommendation Setup - SmartDiet Ai</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Favicon -->
+  <link href="../static/img/favicon.ico" rel="icon">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/style.css" rel="stylesheet">
+  <link href="../static/styles.css" rel="stylesheet">
+
+  <style>
+    .setup-card {
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    .section-title {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      color: #0F172B;
+      border-bottom: 2px solid #FEA116;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .checkbox-item:hover {
+      background: #e9ecef;
+      transform: translateY(-2px);
+    }
+    .checkbox-item input {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+    .btn-submit {
+      background: linear-gradient(45deg, #FEA116, #FF6B6B);
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(254, 161, 22, 0.3);
+    }
+  </style>
+  <link href="../static/css/mobile-fix.css" rel="stylesheet">
+</head>
+
+<body>
+<div class="container-xxl bg-white p-0">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+  <a href="/index" class="navbar-brand p-0">
+    <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet Ai</h1>
+  </a>
+  <div class="collapse navbar-collapse" id="navbarCollapse">
+    <div class="navbar-nav ms-auto py-0 pe-4">
+      <a href="/index" class="nav-item nav-link">Home</a>
+      <a href="/recommend_setup" class="nav-item nav-link active">Recommendation</a>
+      <a href="/track" class="nav-item nav-link">Tracking</a>
+      <a href="/progress" class="nav-item nav-link">Progress</a>
+      <a href="/profile" class="nav-item nav-link">Profile</a>
+    </div>
+    <a href="/logout" class="btn btn-primary py-2 px-4">Logout</a>
+  </div>
+</nav>
+
+
+<!-- HEADER -->
+<div class="container-fluid py-5 bg-dark hero-header mb-5 mt-5">
+  <div class="container text-center pt-5 pb-4">
+    <h1 class="display-4 text-white">Recommendation Setup</h1>
+    
+  </div>
+</div>
+
+<!-- FORM -->
+<div class="container pb-5">
+<form action="/recommendation" method="POST">
+
+<!-- ================= FOOD PREFERENCES ================= -->
+<div class="setup-card">
+<h3 class="section-title">Food Preferences (Model Inputs)</h3>
+
+<p class="text-muted">
+✔ Choose 1–2 options per category<br>
+✔ Vegetarian users must select <b>Protein = None</b><br>
+✔ Allergies are strictly filtered
+</p>
+
+<div class="row">
+
+<!-- MEAL TIME -->
+<div class="col-md-12 mb-4">
+<h5>Meal Time</h5>
+<div class="checkbox-grid">
+<label class="checkbox-item"><input type="radio" name="meal_time" value="Breakfast" required> Breakfast</label>
+<label class="checkbox-item"><input type="radio" name="meal_time" value="Lunch"> Lunch</label>
+<label class="checkbox-item"><input type="radio" name="meal_time" value="Snack"> Snack</label>
+<label class="checkbox-item"><input type="radio" name="meal_time" value="Dinner"> Dinner</label>
+</div>
+</div>
+
+<!-- CARB BASE -->
+<div class="col-md-6 mb-4">
+<h5>Carbohydrate Base</h5>
+<div class="checkbox-grid">
+<label class="checkbox-item"><input type="checkbox" name="carb_base" value="rice"> Rice</label>
+<label class="checkbox-item"><input type="checkbox" name="carb_base" value="wheat"> Wheat</label>
+<label class="checkbox-item"><input type="checkbox" name="carb_base" value="lentils"> lentils</label>
+<label class="checkbox-item"><input type="checkbox" name="carb_base" value="gram_flour"> gram_flour</label>
+<label class="checkbox-item"><input type="checkbox" name="carb_base" value="corn"> corn </label>
+<label class="checkbox-item"><input type="checkbox" name="carb_base" value="none"> none</label>
+
+</div>
+</div>
+
+<!-- PROTEIN -->
+<div class="col-md-6 mb-4">
+<h5>Protein Source</h5>
+<div class="checkbox-grid">
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="rajama"> rajama</label>
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="paneer"> Paneer</label>
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="chicken"> Chicken</label>
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="mutton"> Mutton</label>
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="fish"> Fish</label>
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="soy"> soy</label>
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="egg"> egg</label>
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="chickpea"> chickpea</label>
+<label class="checkbox-item"><input type="checkbox" name="protein_source" value="none"> none</label>
+
+</div>
+</div>
+
+<!-- VEGETABLE -->
+<div class="col-md-6 mb-4">
+<h5>Primary Vegetable</h5>
+<div class="checkbox-grid">
+<label class="checkbox-item"><input type="checkbox" name="primary_veggie" value="onion"> Onion</label>
+<label class="checkbox-item"><input type="checkbox" name="primary_veggie" value="spinach"> Spinach</label>
+<label class="checkbox-item"><input type="checkbox" name="primary_veggie" value="potato"> Potato</label>
+<label class="checkbox-item"><input type="checkbox" name="primary_veggie" value="tomato"> Tomato</label>
+<label class="checkbox-item"><input type="checkbox" name="primary_veggie" value="fruits"> fruits</label>
+<label class="checkbox-item"><input type="checkbox" name="primary_veggie" value="none"> none</label>
+</div>
+</div>
+
+<!-- VEG TYPE -->
+<div class="col-md-6 mb-4">
+<h5>Diet Type</h5>
+<div class="checkbox-grid">
+<label class="checkbox-item"><input type="radio" name="veg_type" value="veg" required> Vegetarian</label>
+<label class="checkbox-item"><input type="radio" name="veg_type" value="non-veg"> Non-Vegetarian</label>
+</div>
+</div>
+
+<!-- ALLERGY -->
+<div class="col-md-12 mb-4">
+<h5>Allergy (used to filter meals)</h5>
+<div class="checkbox-grid">
+<label class="checkbox-item"><input type="radio" name="allergy" value="none" required> None</label>
+<label class="checkbox-item"><input type="radio" name="allergy" value="lactose"> Lactose</label>
+<label class="checkbox-item"><input type="radio" name="allergy" value="nuts"> Nuts</label>
+<label class="checkbox-item"><input type="radio" name="allergy" value="gluten"> Gluten</label>
+<label class="checkbox-item"><input type="radio" name="allergy" value="seafood"> Seafood</label>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- SUBMIT -->
+<div class="text-center mt-4">
+<button type="submit" class="btn btn-primary px-5 py-3 rounded-pill">
+<i class="fa fa-magic me-2"></i>Generate Recommendations
+</button>
+</div>
+
+</form>
+</div>
+
+<!-- FOOTER -->
+<div class="container-fluid bg-dark text-light footer pt-5 mt-5">
+<div class="container text-center">
+&copy; SmartDiet Ai. All Rights Reserved.
+</div>
+</div>
+
+</div>
+</body>
+</html>

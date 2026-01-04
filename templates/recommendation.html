@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Recommendation</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Favicon -->
+  <link href="../static/img/favicon.ico" rel="icon">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/style.css" rel="stylesheet">
+  <link href="../static/styles.css" rel="stylesheet">
+
+  <style>
+    .setup-card {
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      color: #0F172B;
+      border-bottom: 2px solid #FEA116;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+
+  </style>
+  <link href="../static/css/mobile-fix.css" rel="stylesheet">
+</head>
+
+<body>
+  {% block content %}
+    
+
+    <style>
+
+    /* ===== THEME COLORS ===== */
+    :root {
+      --dark-bg: #0F172B;
+      --accent: #FEA116;
+      --card-bg: #ffffff;
+      --text-dark: #0F172B;
+      --text-muted: #6c757d;
+    }
+
+    /* ===== HERO HEADER ===== */
+    .hero-header {
+      background: linear-gradient(to right,
+          rgba(222, 137, 26, 0.95),
+          rgba(219, 87, 5, 0.95));
+      padding: 80px 0;
+    }
+
+    /* ===== CARD ===== */
+    .setup-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    /* ===== TITLES ===== */
+    .section-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .meal-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      font-size: 1.15rem;
+    }
+
+    /* ===== DIVIDERS ===== */
+    .divider {
+      width: 40%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 10px auto;
+    }
+
+    .section-divider {
+      width: 20%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 14px auto;
+    }
+
+    /* ===== NUTRITION ===== */
+    .nutrient {
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    .reason {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-edit {
+      background: linear-gradient(45deg, #FEA116, #FF6B00);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(254, 161, 22, 0.35);
+    }
+
+    .btn-edit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(254, 161, 22, 0.45);
+    }
+  </style>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+    <a href="/index" class="navbar-brand p-0">
+      <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet AI</h1>
+    </a>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <div class="navbar-nav ms-auto py-0 pe-4">
+        <a href="/index" class="nav-item nav-link">Home</a>
+        <a href="/recommend_setup" class="nav-item nav-link active">Recommendation</a>
+        <a href="/track" class="nav-item nav-link">Tracking</a>
+        <a href="/progress" class="nav-item nav-link">Progress</a>
+        <a href="/profile" class="nav-item nav-link">Profile</a>
+        <a href="/documentation" class="nav-item nav-link">Docs</a>
+      </div>
+      <a href="/logout" class="btn btn-primary py-2 px-4">Logout</a>
+    </div>
+  </nav>
+
+
+  <!-- ================= HERO ================= -->
+  <div class="container-fluid hero-header mb-5 mt-4">
+    <div class="container text-center">
+      <h1 class="display-4 text-white animated slideInDown">
+        Food Recommendation Based on Your Preferences
+      </h1>
+
+    </div>
+  </div>
+
+  <div class="container pb-5">
+
+    {% for meal_time, meals in meal_plan.items() %}
+    <div class="setup-card text-center">
+
+      <h4 class="section-title">{{ meal_time }}</h4>
+      <div class="section-divider"></div>
+
+      {% if meals|length == 0 %}
+      <p class="text-muted mt-3">
+        No recommendations generated yet for {{ meal_time }}.
+      </p>
+      {% else %}
+      <div class="row mt-4">
+        {% for item in meals %}
+        <div class="col-md-6 mb-4">
+          <div class="setup-card">
+
+            <p class="meal-title">{{ item.name }}</p>
+            <div class="divider"></div>
+
+            <div class="nutrient">
+              <b>Calories:</b> {{ item.nutrition.cal }} kcal<br>
+              <b>Protein:</b> {{ item.nutrition.protein }} g<br>
+              <b>Carbs:</b> {{ item.nutrition.carb }} g<br>
+              <b>Fat:</b> {{ item.nutrition.fat }} g
+            </div>
+
+            <div class="reason">
+              ✔ Matches meal time<br>
+              ✔ Fits dietary preference<br>
+              ✔ Allergy-safe
+            </div>
+
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+
+    <!-- Caution Message -->
+    <div class="alert alert-warning text-center" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 2px solid #ffc107; border-radius: 12px; padding: 20px; margin: 30px 0; box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);">
+      <h5 style="color: #856404; margin-bottom: 10px;">
+        <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+        <strong>Important Notice</strong>
+      </h5>
+      <p style="color: #856404; margin-bottom: 0; font-size: 0.95rem;">
+        These are AI-generated meal recommendations based on your preferences. 
+        Please verify nutritional information and consult with a healthcare professional or nutritionist 
+        before making significant dietary changes.
+      </p>
+    </div>
+
+    <div class="text-center">
+      <a onclick="history.back()">
+        <button class="btn-edit mt-3">
+          Modify Preferences
+        </button>
+      </a>
+    </div>
+    <div class="text-center mt-4">
+
+      <!-- Clear -->
+      <form action="/clear_recommendation" method="POST" style="display:inline;">
+        <button class="btn-edit" style="background: #dc3545; margin-left: 10px;">
+          Clear Today’s Plan
+        </button>
+      </form>
+
+    </div>
+
+
+  </div>
+{% endblock %}

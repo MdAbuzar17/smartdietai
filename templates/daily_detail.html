@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Daily Progress</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Favicon -->
+  <link href="../static/img/favicon.ico" rel="icon">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/style.css" rel="stylesheet">
+  <link href="../static/styles.css" rel="stylesheet">
+
+  <style>
+    /* ===== THEME COLORS ===== */
+    :root {
+      --dark-bg: #0F172B;
+      --accent: #FEA116;
+      --card-bg: #ffffff;
+      --text-dark: #0F172B;
+      --text-muted: #6c757d;
+    }
+
+    /* ===== HERO HEADER ===== */
+    .hero-header {
+      background: linear-gradient(to right,
+          rgba(222, 137, 26, 0.95),
+          rgba(219, 87, 5, 0.95));
+      padding: 80px 0;
+    }
+
+    /* ===== CARD ===== */
+    .setup-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+      margin-bottom: 30px;
+    }
+
+    /* ===== TITLES ===== */
+    .section-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 1.5rem;
+    }
+
+    .section-divider {
+      width: 20%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 14px auto;
+    }
+
+    /* ===== STATS ===== */
+    .stat-item {
+      padding: 15px;
+      margin: 10px 0;
+      background: #f8f9fa;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+    }
+
+    .stat-label {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .stat-value {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-edit {
+      background: linear-gradient(45deg, #FEA116, #FF6B00);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(254, 161, 22, 0.35);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-edit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(254, 161, 22, 0.45);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .form-control {
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      height: 45px;
+      padding: 10px 15px;
+    }
+  </style>
+  <link href="../static/css/mobile-fix.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+    <a href="/index" class="navbar-brand p-0">
+      <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet AI</h1>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <div class="navbar-nav ms-auto py-0 pe-4">
+        <a href="/index" class="nav-item nav-link">Home</a>
+        <a href="/recommend_setup" class="nav-item nav-link">Recommendation</a>
+        <a href="/track" class="nav-item nav-link">Tracking</a>
+        <a href="/progress" class="nav-item nav-link active">Progress</a>
+        <a href="/profile" class="nav-item nav-link">Profile</a>
+      </div>
+      <a href="/logout" class="btn btn-primary py-2 px-4">Logout</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <div class="container-fluid hero-header mb-5 mt-4">
+    <div class="container text-center">
+      <h1 class="display-4 text-white animated slideInDown">
+        Daily Progress Details
+      </h1>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+
+    <div class="row">
+      <div class="col-md-2"></div>
+      <div class="col-md-8">
+        <div class="setup-card">
+          <h4 class="section-title text-center">Select Date</h4>
+          <div class="section-divider"></div>
+
+          <form action="/daily_detail" method="POST" class="text-center mt-4">
+            <div class="form-group d-inline-block" style="width: auto;">
+              <input name="date" type="date" class="form-control" style="width: 250px; display: inline-block;">
+              <button type="submit" class="btn-edit ml-2">View Details</button>
+          </form>
+        </div>
+      </div>
+
+      {% if date %}
+      <div class="setup-card">
+        <h4 class="section-title text-center">{{date}}</h4>
+        <div class="section-divider"></div>
+
+        {% if error_message %}
+        <!-- Error Message Display -->
+        <div class="text-center mt-4 p-4"
+          style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 2px solid #ffc107; border-radius: 12px;">
+          <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 2rem; margin-bottom: 10px;"></i>
+          <h5 style="color: #856404; margin-bottom: 10px;">
+            <strong>No Data Available</strong>
+          </h5>
+          <p style="color: #856404; margin-bottom: 0; font-size: 1rem;">
+            {{ error_message }}
+          </p>
+        </div>
+        {% else %}
+        <div class="mt-4">
+          <div class="stat-item">
+            <span class="stat-label">Body Weight:</span>
+            <span class="stat-value float-right">{{weight}} kg</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">Protein Consumed:</span>
+            <span class="stat-value float-right">{{protein}} g</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">Carbs Consumed:</span>
+            <span class="stat-value float-right">{{carb}} g</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">Fat Consumed:</span>
+            <span class="stat-value float-right">{{fat}} g</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">Energy (Calorie) Required:</span>
+            <span class="stat-value float-right">{{calorie}} kcal</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="stat-label">Energy (Calorie) Consumed:</span>
+            <span class="stat-value float-right">{{consumed}} kcal</span>
+          </div>
+
+          {% if deficit %}
+          <div class="text-center mt-4 p-3" style="background: #fff3cd; border-radius: 10px;">
+            <h5 style="color: var(--accent); font-weight: 700;">{{deficit}}</h5>
+            <p class="mt-2" style="color: var(--text-dark);">{{result}}</p>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="text-center mt-4">
+        <a href="/progress" class="btn-edit">Back to Progress</a>
+      </div>
+    </div>
+    <div class="col-md-2"></div>
+  </div>
+
+  </div>
+
+</body>
+
+</html>

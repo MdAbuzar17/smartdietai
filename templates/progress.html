@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Progress</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Favicon -->
+  <link href="../static/img/favicon.ico" rel="icon">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/style.css" rel="stylesheet">
+  <link href="../static/styles.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+
+  <style>
+    /* ===== THEME COLORS ===== */
+    :root {
+      --dark-bg: #0F172B;
+      --accent: #FEA116;
+      --card-bg: #ffffff;
+      --text-dark: #0F172B;
+      --text-muted: #6c757d;
+    }
+
+    /* ===== HERO HEADER ===== */
+    .hero-header {
+      background: linear-gradient(to right,
+          rgba(222, 137, 26, 0.95),
+          rgba(219, 87, 5, 0.95));
+      padding: 80px 0;
+    }
+
+    /* ===== CARD ===== */
+    .setup-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    /* ===== TITLES ===== */
+    .section-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 1.5rem;
+    }
+
+    /* ===== DIVIDERS ===== */
+    .section-divider {
+      width: 20%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 14px auto;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-edit {
+      background: linear-gradient(45deg, #FEA116, #FF6B00);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(254, 161, 22, 0.35);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-edit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(254, 161, 22, 0.45);
+      color: #fff;
+      text-decoration: none;
+    }
+  </style>
+  <link href="../static/css/mobile-fix.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+    <a href="/index" class="navbar-brand p-0">
+      <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet AI</h1>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <div class="navbar-nav ms-auto py-0 pe-4">
+        <a href="/index" class="nav-item nav-link">Home</a>
+        <a href="/recommend_setup" class="nav-item nav-link">Recommendation</a>
+        <a href="/track" class="nav-item nav-link">Tracking</a>
+        <a href="/progress" class="nav-item nav-link active">Progress</a>
+        <a href="/profile" class="nav-item nav-link">Profile</a>
+        <a href="/documentation" class="nav-item nav-link">Docs</a>
+      </div>
+      <a href="/logout" class="btn btn-primary py-2 px-4">Logout</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <div class="container-fluid hero-header mb-5 mt-4">
+    <div class="container text-center">
+      <h1 class="display-4 text-white animated slideInDown">
+        Weight Progress
+      </h1>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+
+    <!-- Daily Progress -->
+    <div class="setup-card">
+      <h4 class="section-title text-center">Weight Progress (Daily)</h4>
+      <div class="section-divider"></div>
+
+      <div class="text-center mt-4">
+        <canvas id="dailyprogress" style="width:100%;max-width:600px; margin: 0 auto;"></canvas>
+        <a href="/daily_detail" class="btn-edit mt-4">More Details</a>
+      </div>
+    </div>
+
+    <!-- Weekly Progress -->
+    <div class="setup-card">
+      <h4 class="section-title text-center">Weight Progress (Weekly)</h4>
+      <div class="section-divider"></div>
+
+      <div class="text-center mt-4">
+        <canvas id="weeklyprogress" style="width:100%;max-width:600px; margin: 0 auto;"></canvas>
+        <a href="/weekly_detail" class="btn-edit mt-4">More Details</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Hidden data -->
+  <div id="days" style="display:none;">
+    {% for i in days %}
+    {{i}}
+    {% endfor %}
+  </div>
+
+  <div id="weeks" style="display:none;">
+    {% for i in weeks %}
+    {{i}}
+    {% endfor %}
+  </div>
+
+  <div id="d_weight" style="display:none;">
+    {% for i in d_weight %}
+    {{i}}
+    {% endfor %}
+  </div>
+
+  <div id="w_weight" style="display:none;">
+    {% for i in w_weight %}
+    {{i}}
+    {% endfor %}
+  </div>
+
+  <script>
+    // Daily Progress Chart
+    dates = document.getElementById('days').innerHTML
+    days = dates.split(/[\s,]+/)
+
+    dates = document.getElementById('d_weight').innerHTML
+    weightes = dates.split(/[\s,]+/)
+
+    new Chart("dailyprogress", {
+      type: "line",
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Weight (kg)',
+          data: weightes,
+          borderColor: "#FEA116",
+          backgroundColor: "rgba(254, 161, 22, 0.1)",
+          borderWidth: 3,
+          tension: 0.4
+        }]
+      },
+      options: {
+        legend: { display: true },
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: false
+            }
+          }]
+        }
+      }
+    });
+
+    // Weekly Progress Chart
+    week = document.getElementById('weeks').innerHTML
+    weeks = week.split(/[\s,]+/)
+
+    weight = document.getElementById('w_weight').innerHTML
+    weightes = weight.split(/[\s,]+/)
+
+    new Chart("weeklyprogress", {
+      type: "line",
+      data: {
+        labels: weeks,
+        datasets: [{
+          label: 'Weight (kg)',
+          data: weightes,
+          borderColor: "#FF6B00",
+          backgroundColor: "rgba(255, 107, 0, 0.1)",
+          borderWidth: 3,
+          tension: 0.4
+        }]
+      },
+      options: {
+        legend: { display: true },
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: false
+            }
+          }]
+        }
+      }
+    });
+  </script>
+
+</body>
+
+</html>

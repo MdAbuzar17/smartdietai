@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Profile</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Favicon -->
+  <link href="../static/img/favicon.ico" rel="icon">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/style.css" rel="stylesheet">
+  <link href="../static/styles.css" rel="stylesheet">
+
+  <style>
+    /* ===== THEME COLORS ===== */
+    :root {
+      --dark-bg: #0F172B;
+      --accent: #FEA116;
+      --card-bg: #ffffff;
+      --text-dark: #0F172B;
+      --text-muted: #6c757d;
+    }
+
+    /* ===== HERO HEADER ===== */
+    .hero-header {
+      background: linear-gradient(to right,
+          rgba(222, 137, 26, 0.95),
+          rgba(219, 87, 5, 0.95));
+      padding: 80px 0;
+    }
+
+    /* ===== CARD ===== */
+    .setup-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+      margin-bottom: 30px;
+    }
+
+    /* ===== TITLES ===== */
+    .section-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 1.8rem;
+    }
+
+    .subsection-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    /* ===== DIVIDERS ===== */
+    .divider {
+      width: 40%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 10px auto;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-edit {
+      background: linear-gradient(45deg, #FEA116, #FF6B00);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(254, 161, 22, 0.35);
+      text-decoration: none;
+      display: inline-block;
+      margin: 5px;
+    }
+
+    .btn-edit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(254, 161, 22, 0.45);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .profile-info {
+      font-size: 1rem;
+      line-height: 2;
+      color: #333;
+    }
+
+    .profile-info strong {
+      color: var(--accent);
+    }
+  </style>
+  <link href="../static/css/mobile-fix.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+    <a href="/index" class="navbar-brand p-0">
+      <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet AI</h1>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <div class="navbar-nav ms-auto py-0 pe-4">
+        <a href="/index" class="nav-item nav-link">Home</a>
+        <a href="/recommend_setup" class="nav-item nav-link">Recommendation</a>
+        <a href="/track" class="nav-item nav-link">Tracking</a>
+        <a href="/progress" class="nav-item nav-link">Progress</a>
+        <a href="/profile" class="nav-item nav-link active">Profile</a>
+        <a href="/documentation" class="nav-item nav-link">Docs</a>
+      </div>
+      <a href="/logout" class="btn btn-primary py-2 px-4">Logout</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <div class="container-fluid hero-header mb-5 mt-4">
+    <div class="container text-center">
+      <h1 class="display-4 text-white animated slideInDown">
+        Your Profile
+      </h1>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+
+    <div class="setup-card">
+      <h2 class="section-title text-center">Profile Information</h2>
+      <div class="divider"></div>
+
+      <div class="row mt-5">
+        <!-- Personal Information -->
+        <div class="col-md-4">
+          <h5 class="subsection-title">Personal Details</h5>
+          <div class="profile-info">
+            <p>Name: <strong>{{u_info.u_username}}</strong></p>
+            <p>Age: <strong>{{u_info.u_age}}</strong></p>
+            <p>Gender: <strong>{{u_info.u_gender}}</strong></p>
+            <p>Weight: <strong>{{u_info.u_weight}} kg</strong></p>
+            <p>Height: <strong>{{u_info.u_feet}}'{{u_info.u_inches}}"</strong></p>
+            <p>Body Fat: <strong>{{u_info.u_bodyfat}}%</strong></p>
+            <p>Status: <strong>{{u_info.u_status}}</strong></p>
+          </div>
+        </div>
+
+        <!-- Journey Information -->
+        <div class="col-md-4">
+          <h5 class="subsection-title">Journey Progress</h5>
+          <div class="profile-info">
+            <p>Day <strong>{{u_info.u_journey}}</strong> of the journey</p>
+            <p>Dietary Preference: <strong>{{u_info.u_vegan}}</strong></p>
+            <p>Allergies: <strong>{{u_info.u_allergy}}</strong></p>
+          </div>
+        </div>
+
+        <!-- Daily Requirements -->
+        <div class="col-md-4">
+          <h5 class="subsection-title">Daily Requirements</h5>
+          <div class="profile-info">
+            <p>Calories: <strong>{{u_info.u_calories}} kcal</strong></p>
+            <p>Protein: <strong>{{u_info.u_protein}} g</strong></p>
+            <p>Carbohydrates: <strong>{{u_info.u_carb}} g</strong></p>
+            <p>Fat: <strong>{{u_info.u_fat}} g</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="text-center mt-5">
+        <a href="/update_profile" class="btn-edit">Edit Profile</a>
+        <a onclick="history.back(-1)" class="btn-edit"
+          style="background: linear-gradient(45deg, #6c757d, #495057);">Back</a>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+
+</html>

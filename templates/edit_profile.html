@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Edit Profile</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Favicon -->
+  <link href="../static/img/favicon.ico" rel="icon">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/style.css" rel="stylesheet">
+  <link href="../static/styles.css" rel="stylesheet">
+
+  <style>
+    /* ===== THEME COLORS ===== */
+    :root {
+      --dark-bg: #0F172B;
+      --accent: #FEA116;
+      --card-bg: #ffffff;
+      --text-dark: #0F172B;
+      --text-muted: #6c757d;
+    }
+
+    /* ===== HERO HEADER ===== */
+    .hero-header {
+      background: linear-gradient(to right,
+          rgba(222, 137, 26, 0.95),
+          rgba(219, 87, 5, 0.95));
+      padding: 80px 0;
+    }
+
+    /* ===== CARD ===== */
+    .setup-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+      margin-bottom: 30px;
+    }
+
+    /* ===== TITLES ===== */
+    .section-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 1.5rem;
+    }
+
+    .section-divider {
+      width: 20%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 14px auto;
+    }
+
+    /* ===== FORM INPUTS ===== */
+    .form-group label {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      height: 45px;
+      padding: 10px 15px;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.2rem rgba(254, 161, 22, 0.25);
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-edit {
+      background: linear-gradient(45deg, #FEA116, #FF6B00);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(254, 161, 22, 0.35);
+      text-decoration: none;
+      display: inline-block;
+      margin: 5px;
+    }
+
+    .btn-edit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(254, 161, 22, 0.45);
+      color: #fff;
+      text-decoration: none;
+    }
+  </style>
+  <link href="../static/css/mobile-fix.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+    <a href="/index" class="navbar-brand p-0">
+      <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet AI</h1>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <div class="navbar-nav ms-auto py-0 pe-4">
+        <a href="/index" class="nav-item nav-link">Home</a>
+        <a href="/recommend_setup" class="nav-item nav-link">Recommendation</a>
+        <a href="/track" class="nav-item nav-link">Tracking</a>
+        <a href="/progress" class="nav-item nav-link">Progress</a>
+        <a href="/profile" class="nav-item nav-link active">Profile</a>
+      </div>
+      <a href="/logout" class="btn btn-primary py-2 px-4">Logout</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <div class="container-fluid hero-header mb-5 mt-4">
+    <div class="container text-center">
+      <h1 class="display-4 text-white animated slideInDown">
+        Edit Profile
+      </h1>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+
+    <div class="row">
+      <div class="col-md-2"></div>
+      <div class="col-md-8">
+        <div class="setup-card">
+          <h4 class="section-title text-center">Update Your Information</h4>
+          <div class="section-divider"></div>
+
+          <form action="/update_profile" method="POST" class="mt-4">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="name">Name</label>
+                  <input type="text" id="name" name="name" class="form-control" value="{{name}}" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input type="email" id="email" name="email" class="form-control" value="{{email}}" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input type="password" id="password" name="password" class="form-control" value="{{password}}"
+                    required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="age">Age</label>
+                  <input type="number" min="10" max="70" id="age" name="age" class="form-control" value="{{age}}"
+                    required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="gender">Gender</label>
+                  <select name="gender" id="gender" class="form-control" required>
+                    <option value="{{gender}}">{{gender|title}}</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="weight">Weight (kg)</label>
+                  <input type="number" min="30" max="300" id="weight" name="weight" class="form-control"
+                    value="{{weight}}" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label for="feet">Height (ft)</label>
+                  <input type="number" min="4" max="7" id="feet" name="feet" class="form-control" value="{{ft}}"
+                    required>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label for="inches">Height (in)</label>
+                  <input type="number" min="0" max="12" id="inches" name="inches" class="form-control" value="{{inch}}"
+                    required>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label for="vegan">Vegan</label>
+                  <select name="vegan" id="vegan" class="form-control">
+                    <option value="{{vegan}}">{{vegan|title}}</option>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="allergy">Allergy</label>
+                  <select name="allergy" id="allergy" class="form-control">
+                    <option value="{{allergy}}">{{allergy|title}}</option>
+                    <option value="None">None</option>
+                    <option value="Sugar">Sugar</option>
+                    <option value="lactose">Lactose</option>
+                    <option value="gluten">Gluten</option>
+                    <option value="bean/nuts">Bean/Nuts</option>
+                    <option value="Soy">Soy</option>
+                    <option value="eggs">Eggs</option>
+                    <option value="seafood">Seafood</option>
+                    <option value="Shellfish">Shellfish</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="activity">Activity Level</label>
+                  <select name="activity" id="activity" class="form-control" required>
+                    <option value="sedentary">Sedentary</option>
+                    <option value="lightly active">Lightly Active</option>
+                    <option value="moderately active">Moderately Active</option>
+                    <option value="very active">Very Active</option>
+                    <option value="extra active">Extra Active</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center mt-4">
+              <button type="submit" class="btn-edit">Save Changes</button>
+              <a href="/profile" class="btn-edit"
+                style="background: linear-gradient(45deg, #6c757d, #495057);">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-2"></div>
+    </div>
+
+  </div>
+
+</body>
+
+</html>

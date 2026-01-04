@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Tracking</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Favicon -->
+  <link href="../static/img/favicon.ico" rel="icon">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/style.css" rel="stylesheet">
+  <link href="../static/styles.css" rel="stylesheet">
+
+  <!-- Mobile Overflow Fix - MUST BE LAST -->
+  <link href="../static/css/mobile-fix.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  <!-- jQuery -->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.js"></script>
+  <!-- Easy Pie Chart -->
+  <script type="text/javascript"
+    src="http://rendro.github.io/easy-pie-chart/javascripts/jquery.easy-pie-chart.js"></script>
+  <link rel="stylesheet" type="text/css"
+    href="http://rendro.github.io/easy-pie-chart/stylesheets/jquery.easy-pie-chart.css">
+
+  <script type="text/javascript">
+    $(function () {
+      $('.chart').easyPieChart({
+        size: 130,
+        barColor: "#FEA116",
+        scaleLength: 0,
+        lineWidth: 8,
+        trackColor: "#f0f0f0",
+        lineCap: "circle",
+        animate: 2000,
+      });
+    });
+  </script>
+
+  <style>
+    /* ===== THEME COLORS ===== */
+    :root {
+      --dark-bg: #0F172B;
+      --accent: #FEA116;
+      --card-bg: #ffffff;
+      --text-dark: #0F172B;
+      --text-muted: #6c757d;
+    }
+
+    /* ===== HERO HEADER ===== */
+    .hero-header {
+      background: linear-gradient(to right,
+          rgba(222, 137, 26, 0.95),
+          rgba(219, 87, 5, 0.95));
+      padding: 80px 0;
+    }
+
+    /* ===== CARD ===== */
+    .setup-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    /* ===== TITLES ===== */
+    .section-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 1.5rem;
+    }
+
+    .meal-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      font-size: 1.15rem;
+    }
+
+    /* ===== DIVIDERS ===== */
+    .divider {
+      width: 40%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 10px auto;
+    }
+
+    .section-divider {
+      width: 20%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 14px auto;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-edit {
+      background: linear-gradient(45deg, #FEA116, #FF6B00);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(254, 161, 22, 0.35);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-edit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(254, 161, 22, 0.45);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .meal-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .nutrient-info {
+      font-size: 0.95rem;
+      color: #333;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+    <a href="/index" class="navbar-brand p-0">
+      <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet AI</h1>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <div class="navbar-nav ms-auto py-0 pe-4">
+        <a href="/index" class="nav-item nav-link">Home</a>
+        <a href="/recommend_setup" class="nav-item nav-link">Recommendation</a>
+        <a href="/track" class="nav-item nav-link active">Tracking</a>
+        <a href="/progress" class="nav-item nav-link">Progress</a>
+        <a href="/profile" class="nav-item nav-link">Profile</a>
+        <a href="/documentation" class="nav-item nav-link">Docs</a>
+      </div>
+      <a href="/logout" class="btn btn-primary py-2 px-4">Logout</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <div class="container-fluid hero-header mb-5 mt-4">
+    <div class="container text-center">
+      <h1 class="display-4 text-white animated slideInDown">
+        Food Tracking
+      </h1>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+
+    <!-- Meal Tracking Section -->
+    <div class="setup-card">
+      <h4 class="section-title text-center">Today's Meals</h4>
+      <div class="section-divider"></div>
+
+      <div class="row mt-4">
+        <!-- Breakfast -->
+        <div class="col-md-3">
+          <div class="meal-section text-center">
+            <b class="meal-title">Breakfast</b>
+            <form action="/add_food" method="POST">
+              <input type="hidden" value="Breakfast" name="mealtime">
+              <button type="submit" class="btn-edit mt-3" style="font-size: 0.85rem; padding: 8px 20px;">Add
+                Food</button>
+            </form>
+
+            <div class="mt-3 text-left" style="display: inline-block; width: 100%;">
+              {% for item in breakfast_list %}
+              <div class="border-bottom py-2">
+                <span>{{ item }}</span>
+              </div>
+              {% endfor %}
+            </div>
+
+            {% if session['bf_numbers'] %}
+            <div class="nutrient-info mt-3">
+              <p><b>Total</b></p>
+              <p><b>Calories:</b> {{session['bf_numbers'][0]}}kcal</p>
+              <p><b>Protein:</b> {{session['bf_numbers'][1]}}g</p>
+              <p><b>Carbs:</b> {{session['bf_numbers'][2]}}g</p>
+              <p><b>Fat:</b> {{session['bf_numbers'][3]}}g</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Lunch -->
+        <div class="col-md-3">
+          <div class="meal-section text-center">
+            <b class="meal-title">Lunch</b>
+            <form action="/add_food" method="POST">
+              <input type="hidden" value="Lunch" name="mealtime">
+              <button type="submit" class="btn-edit mt-3" style="font-size: 0.85rem; padding: 8px 20px;">Add
+                Food</button>
+            </form>
+
+            <div class="mt-3 text-left" style="display: inline-block; width: 100%;">
+              {% for item in lunch_list %}
+              <div class="border-bottom py-2">
+                <span>{{ item }}</span>
+              </div>
+              {% endfor %}
+            </div>
+
+            {% if session['lunch_numbers'] %}
+            <div class="nutrient-info mt-3">
+              <p><b>Total</b></p>
+              <p><b>Calories:</b> {{session['lunch_numbers'][0]}}kcal</p>
+              <p><b>Protein:</b> {{session['lunch_numbers'][1]}}g</p>
+              <p><b>Carbs:</b> {{session['lunch_numbers'][2]}}g</p>
+              <p><b>Fat:</b> {{session['lunch_numbers'][3]}}g</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Snack -->
+        <div class="col-md-3">
+          <div class="meal-section text-center">
+            <b class="meal-title">Snack</b>
+            <form action="/add_food" method="POST">
+              <input type="hidden" value="Snack" name="mealtime">
+              <button type="submit" class="btn-edit mt-3" style="font-size: 0.85rem; padding: 8px 20px;">Add
+                Food</button>
+            </form>
+
+            <div class="mt-3 text-left" style="display: inline-block; width: 100%;">
+              {% for item in snack_list %}
+              <div class="border-bottom py-2">
+                <span>{{ item }}</span>
+              </div>
+              {% endfor %}
+            </div>
+
+            {% if session['snack_numbers'] %}
+            <div class="nutrient-info mt-3">
+              <p><b>Total</b></p>
+              <p><b>Calories:</b> {{session['snack_numbers'][0]}}kcal</p>
+              <p><b>Protein:</b> {{session['snack_numbers'][1]}}g</p>
+              <p><b>Carbs:</b> {{session['snack_numbers'][2]}}g</p>
+              <p><b>Fat:</b> {{session['snack_numbers'][3]}}g</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Dinner -->
+        <div class="col-md-3">
+          <div class="meal-section text-center">
+            <b class="meal-title">Dinner</b>
+            <form action="/add_food" method="POST">
+              <input type="hidden" value="Dinner" name="mealtime">
+              <button type="submit" class="btn-edit mt-3" style="font-size: 0.85rem; padding: 8px 20px;">Add
+                Food</button>
+            </form>
+
+            <div class="mt-3 text-left" style="display: inline-block; width: 100%;">
+              {% for item in dinner_list %}
+              <div class="border-bottom py-2">
+                <span>{{ item }}</span>
+              </div>
+              {% endfor %}
+            </div>
+
+            {% if session['dinner_numbers'] %}
+            <div class="nutrient-info mt-3">
+              <p><b>Total</b></p>
+              <p><b>Calories:</b> {{session['dinner_numbers'][0]}}kcal</p>
+              <p><b>Protein:</b> {{session['dinner_numbers'][1]}}g</p>
+              <p><b>Carbs:</b> {{session['dinner_numbers'][2]}}g</p>
+              <p><b>Fat:</b> {{session['dinner_numbers'][3]}}g</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Consumption -->
+    <div class="setup-card mt-4">
+      <h4 class="section-title text-center">Today's Consumption</h4>
+      <div class="section-divider"></div>
+
+      <div class="row mt-4">
+        <div class="col-md-3 text-center">
+          <b class="meal-title">Calories Consumed</b>
+          <div class="divider mx-auto"></div>
+          <div class="chart" data-percent="{{cal_percent}}">{{cal_consumed}} kcal</div>
+          <p style="font-size:15px;" class="mt-3">
+            Goal: {{session['u_info'][17]}} kcal<br>
+            Reached {{cal_percent}}%
+          </p>
+        </div>
+
+        <div class="col-md-3 text-center">
+          <b class="meal-title">Protein Consumed</b>
+          <div class="divider mx-auto"></div>
+          <div class="chart" data-percent="{{p_percent}}">{{p_consumed}}g</div>
+          <p style="font-size:15px;" class="mt-3">
+            Goal: {{session['u_info'][14]}}g<br>
+            Reached {{p_percent}}%
+          </p>
+        </div>
+
+        <div class="col-md-3 text-center">
+          <b class="meal-title">Carbs Consumed</b>
+          <div class="divider mx-auto"></div>
+          <div class="chart" data-percent="{{c_percent}}">{{c_consumed}}g</div>
+          <p style="font-size:15px;" class="mt-3">
+            Goal: {{session['u_info'][15]}}g<br>
+            Reached {{c_percent}}%
+          </p>
+        </div>
+
+        <div class="col-md-3 text-center">
+          <b class="meal-title">Fat Consumed</b>
+          <div class="divider mx-auto"></div>
+          <div class="chart" data-percent="{{f_percent}}">{{f_consumed}}g</div>
+          <p style="font-size:15px;" class="mt-3">
+            Goal: {{session['u_info'][16]}}g<br>
+            Reached {{f_percent}}%
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p id="protein" hidden>{{p_consumed}}</p>
+  <p id="carb" hidden>{{c_consumed}}</p>
+  <p id="fat" hidden>{{f_consumed}}</p>
+
+</body>
+
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Add Food</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <!-- Favicon -->
+  <link href="../static/img/favicon.ico" rel="icon">
+
+  <!-- Google Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <!-- Icon Font Stylesheet -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/style.css" rel="stylesheet">
+  <link href="../static/styles.css" rel="stylesheet">
+
+  <style>
+    /* ===== THEME COLORS ===== */
+    :root {
+      --dark-bg: #0F172B;
+      --accent: #FEA116;
+      --card-bg: #ffffff;
+      --text-dark: #0F172B;
+      --text-muted: #6c757d;
+    }
+
+    /* ===== HERO HEADER ===== */
+    .hero-header {
+      background: linear-gradient(to right,
+          rgba(222, 137, 26, 0.95),
+          rgba(219, 87, 5, 0.95));
+      padding: 80px 0;
+    }
+
+    /* ===== CARD ===== */
+    .setup-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+      margin-bottom: 30px;
+    }
+
+    /* ===== TITLES ===== */
+    .section-title {
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 1.5rem;
+    }
+
+    .section-divider {
+      width: 20%;
+      height: 2px;
+      background-color: var(--accent);
+      margin: 14px auto;
+    }
+
+    /* ===== FORM INPUTS ===== */
+    .form-group label {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      height: 45px;
+      padding: 10px 15px;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.2rem rgba(254, 161, 22, 0.25);
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-edit {
+      background: linear-gradient(45deg, #FEA116, #FF6B00);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(254, 161, 22, 0.35);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-edit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(254, 161, 22, 0.45);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    /* ===== TABLE ===== */
+    .food-table {
+      margin-top: 30px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .food-table th {
+      background: linear-gradient(45deg, #FEA116, #FF6B00);
+      color: white;
+      padding: 15px;
+      font-weight: 600;
+    }
+
+    .food-table td {
+      padding: 12px 15px;
+      vertical-align: middle;
+    }
+
+    .food-table tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+  </style>
+  <link href="../static/css/mobile-fix.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0">
+    <a href="/index" class="navbar-brand p-0">
+      <h1 class="text-primary m-0"><i class="fa fa-utensils me-3"></i>SmartDiet AI</h1>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <div class="navbar-nav ms-auto py-0 pe-4">
+        <a href="/index" class="nav-item nav-link">Home</a>
+        <a href="/recommend_setup" class="nav-item nav-link">Recommendation</a>
+        <a href="/track" class="nav-item nav-link active">Tracking</a>
+        <a href="/progress" class="nav-item nav-link">Progress</a>
+        <a href="/profile" class="nav-item nav-link">Profile</a>
+      </div>
+      <a href="/logout" class="btn btn-primary py-2 px-4">Logout</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <div class="container-fluid hero-header mb-5 mt-4">
+    <div class="container text-center">
+      <h1 class="display-4 text-white animated slideInDown">
+        Track Food for {{mealtime}} Meal
+      </h1>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+
+    <!-- Add Food Form -->
+    <div class="setup-card">
+      <h4 class="section-title text-center">Add Food Item</h4>
+      <div class="section-divider"></div>
+
+      <div class="row mt-4">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+          <form action="/add_successful" method="POST">
+            <input type="hidden" value="{{mealtime}}" name="mealtime">
+
+            <div class="form-group">
+              <label for="food">Select Food to Add</label>
+              <input type="text" id="food" name="food" class="form-control" placeholder="Enter food name" required>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="portion">Portion Size</label>
+                  <input type="number" id="portion" name="portion" class="form-control" min="1" max="999"
+                    placeholder="e.g., 100" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="portion_type">Portion Type</label>
+                  <select name="portion_type" id="portion_type" class="form-control" required>
+                    <option value="g">g (grams)</option>
+                    <option value="piece">piece</option>
+                    <option value="cup">cup</option>
+                    <option value="small">small</option>
+                    <option value="medium">medium</option>
+                    <option value="large">large</option>
+                    <option value="tray">tray</option>
+                    <option value="oz">oz</option>
+                    <option value="liter">liter</option>
+                    <option value="slice">slice</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center mt-3">
+              <button type="submit" class="btn-edit">Add Food</button>
+              <a href="/track" class="btn-edit" style="background: linear-gradient(45deg, #6c757d, #495057);">Back to
+                Tracking</a>
+            </div>
+          </form>
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+    </div>
+
+    <!-- Food List Table -->
+    {% if (session['bf_meal'] and mealtime == "Breakfast") or (session['lunch_meal'] and mealtime == "Lunch") or
+    (session['snack_meal'] and mealtime == "Snack") or (session['dinner_meal'] and mealtime == "Dinner") %}
+    <div class="setup-card">
+      <h4 class="section-title text-center">Current {{mealtime}} Items</h4>
+      <div class="section-divider"></div>
+
+      <div class="table-responsive">
+        <table class="table food-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Quantity</th>
+              <th>Calories</th>
+              <th>Protein</th>
+              <th>Carbs</th>
+              <th>Fat</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if session['bf_meal'] and mealtime == "Breakfast" %}
+            {% for i in session['bf_meal'] %}
+            <tr>
+              <td>{{i[0]}}</td>
+              <td>{{i[1]}} {{i[2]}}</td>
+              <td>{{i[3]}} kcal</td>
+              <td>{{i[4]}}g</td>
+              <td>{{i[5]}}g</td>
+              <td>{{i[6]}}g</td>
+              <td>
+                <form action="/delete_food" method="POST" style="display:inline;">
+                  <input type="hidden" name="fname" value="{{i[0]}}">
+                  <input type="hidden" value="{{mealtime}}" name="mealtime">
+                  <button type="submit" class="btn btn-sm"
+                    style="background: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 15px;">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+            {% if session['bf_numbers'] %}
+            <tr style="background-color: #fff3cd; font-weight: bold;">
+              <td></td>
+              <td>Total</td>
+              <td>{{session['bf_numbers'][0]}} kcal</td>
+              <td>{{session['bf_numbers'][1]}}g</td>
+              <td>{{session['bf_numbers'][2]}}g</td>
+              <td>{{session['bf_numbers'][3]}}g</td>
+              <td></td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {% if session['lunch_meal'] and mealtime == "Lunch" %}
+            {% for i in session['lunch_meal'] %}
+            <tr>
+              <td>{{i[0]}}</td>
+              <td>{{i[1]}} {{i[2]}}</td>
+              <td>{{i[3]}} kcal</td>
+              <td>{{i[4]}}g</td>
+              <td>{{i[5]}}g</td>
+              <td>{{i[6]}}g</td>
+              <td>
+                <form action="/delete_food" method="POST" style="display:inline;">
+                  <input type="hidden" name="fname" value="{{i[0]}}">
+                  <input type="hidden" value="{{mealtime}}" name="mealtime">
+                  <button type="submit" class="btn btn-sm"
+                    style="background: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 15px;">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+            {% if session['lunch_numbers'] %}
+            <tr style="background-color: #fff3cd; font-weight: bold;">
+              <td></td>
+              <td>Total</td>
+              <td>{{session['lunch_numbers'][0]}} kcal</td>
+              <td>{{session['lunch_numbers'][1]}}g</td>
+              <td>{{session['lunch_numbers'][2]}}g</td>
+              <td>{{session['lunch_numbers'][3]}}g</td>
+              <td></td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {% if session['snack_meal'] and mealtime == "Snack" %}
+            {% for i in session['snack_meal'] %}
+            <tr>
+              <td>{{i[0]}}</td>
+              <td>{{i[1]}} {{i[2]}}</td>
+              <td>{{i[3]}} kcal</td>
+              <td>{{i[4]}}g</td>
+              <td>{{i[5]}}g</td>
+              <td>{{i[6]}}g</td>
+              <td>
+                <form action="/delete_food" method="POST" style="display:inline;">
+                  <input type="hidden" name="fname" value="{{i[0]}}">
+                  <input type="hidden" value="{{mealtime}}" name="mealtime">
+                  <button type="submit" class="btn btn-sm"
+                    style="background: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 15px;">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+            {% if session['snack_numbers'] %}
+            <tr style="background-color: #fff3cd; font-weight: bold;">
+              <td></td>
+              <td>Total</td>
+              <td>{{session['snack_numbers'][0]}} kcal</td>
+              <td>{{session['snack_numbers'][1]}}g</td>
+              <td>{{session['snack_numbers'][2]}}g</td>
+              <td>{{session['snack_numbers'][3]}}g</td>
+              <td></td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {% if session['dinner_meal'] and mealtime == "Dinner" %}
+            {% for i in session['dinner_meal'] %}
+            <tr>
+              <td>{{i[0]}}</td>
+              <td>{{i[1]}} {{i[2]}}</td>
+              <td>{{i[3]}} kcal</td>
+              <td>{{i[4]}}g</td>
+              <td>{{i[5]}}g</td>
+              <td>{{i[6]}}g</td>
+              <td>
+                <form action="/delete_food" method="POST" style="display:inline;">
+                  <input type="hidden" name="fname" value="{{i[0]}}">
+                  <input type="hidden" value="{{mealtime}}" name="mealtime">
+                  <button type="submit" class="btn btn-sm"
+                    style="background: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 15px;">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+            {% if session['dinner_numbers'] %}
+            <tr style="background-color: #fff3cd; font-weight: bold;">
+              <td></td>
+              <td>Total</td>
+              <td>{{session['dinner_numbers'][0]}} kcal</td>
+              <td>{{session['dinner_numbers'][1]}}g</td>
+              <td>{{session['dinner_numbers'][2]}}g</td>
+              <td>{{session['dinner_numbers'][3]}}g</td>
+              <td></td>
+            </tr>
+            {% endif %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+</body>
+
+</html>
