@@ -52,11 +52,32 @@ def get_connection():
         print(f"Error connecting to database: {e}")
         raise e
 
+def fix_user_table_name():
+    """Rename reserved table 'user' to 'users' if it exists"""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT to_regclass('public."user"');
+        """)
+        result = cur.fetchone()
+
+        if result and result['to_regclass']:
+            cur.execute('ALTER TABLE "user" RENAME TO users;')
+            conn.commit()
+            print('Renamed table "user" to users')
+
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print("User table rename skipped:", e)
+
 def create_tables():
     """Create tables if they don't exist (PostgreSQL)"""
     commands = (
         """
-        CREATE TABLE IF NOT EXISTS "user" (
+        CREATE TABLE IF NOT EXISTS users (
             u_id SERIAL PRIMARY KEY,
             u_username VARCHAR(255),
             u_email VARCHAR(255) UNIQUE NOT NULL,
@@ -85,7 +106,7 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS tracking (
             track_id SERIAL PRIMARY KEY,
             track_date VARCHAR(50),
-            u_id INTEGER REFERENCES "user"(u_id),
+            u_id INTEGER REFERENCES users(u_id),
             track_calorie FLOAT,
             track_protein FLOAT,
             track_fat FLOAT,
@@ -99,7 +120,7 @@ def create_tables():
         """
         CREATE TABLE IF NOT EXISTS progress (
             p_id SERIAL PRIMARY KEY,
-            u_id INTEGER REFERENCES "user"(u_id),
+            u_id INTEGER REFERENCES users(u_id),
             p_date VARCHAR(50),
             p_weight FLOAT
         )
@@ -107,7 +128,7 @@ def create_tables():
         """
         CREATE TABLE IF NOT EXISTS progress_week (
             pw_id SERIAL PRIMARY KEY,
-            u_id INTEGER REFERENCES "user"(u_id),
+            u_id INTEGER REFERENCES users(u_id),
             pw_num INTEGER,
             pw_weight FLOAT
         )
@@ -129,6 +150,7 @@ def create_tables():
             conn.close()
 
 # Initialize Database
+fix_user_table_name()
 create_tables()
 
 # ==================== FLASK APP CONFIGURATION ====================
@@ -864,7 +886,7 @@ def edit_weight():
 		try:
 			with get_connection() as conn:
 				cur = conn.cursor()
-				cur.execute("select * from user where u_id=%s",(session['uid'],))
+				cur.execute("select * from users where u_id=%s",(session['uid'],))
 				u_data = cur.fetchone()
 				name = u_data[1]
 				age = u_data[4]
@@ -961,12 +983,12 @@ def edit_weight():
 		try:
 			with get_connection() as conn:
 				cur = conn.cursor()
-				cur.execute("update user set u_username=%s, u_email=%s, u_age=%s, u_gender=%s, u_vegan=%s, u_allergy=%s, u_weight=%s, u_feet=%s, u_inches=%s, u_bmi=%s, u_activitylevel=%s, u_protein=%s, u_carb=%s, u_fat=%s, u_fiber=%s, u_calories=%s, u_bodyfat=%s, u_status=%s where u_id=%s", (name, email, age, gender, vegan, allergy, weight_kg, feet, inches, int(BMI), activity_level, protein, carb, fat, fiber, calorie, bodyfat, body_status, session['uid']))
+				cur.execute("update users set u_username=%s, u_email=%s, u_age=%s, u_gender=%s, u_vegan=%s, u_allergy=%s, u_weight=%s, u_feet=%s, u_inches=%s, u_bmi=%s, u_activitylevel=%s, u_protein=%s, u_carb=%s, u_fat=%s, u_fiber=%s, u_calories=%s, u_bodyfat=%s, u_status=%s where u_id=%s", (name, email, age, gender, vegan, allergy, weight_kg, feet, inches, int(BMI), activity_level, protein, carb, fat, fiber, calorie, bodyfat, body_status, session['uid']))
 				conn.commit()
 				
 				# Update session info
 				session['u_info'] = [] # Clear and reload
-				cur.execute("select * from user where u_id=%s",(session['uid'],))
+				cur.execute("select * from users where u_id=%s",(session['uid'],))
 				u_info = cur.fetchone()
 				for row in u_info:
 					session['u_info'].append(row)
@@ -1486,7 +1508,7 @@ def login():
 		try:
 			with get_connection() as conn:
 				cur = conn.cursor()
-				cur.execute("select * from user where u_email=%s",(email,))
+				cur.execute("select * from users where u_email=%s",(email,))
 				u_info= cur.fetchall()
 				if not u_info:
 					flash(f'The email address ({email}) that you entered does not exist in our database.')
@@ -1519,10 +1541,10 @@ def login():
 							with get_connection() as conn:
 								cur = conn.cursor()
 								cur2 = conn.cursor()
-								cur2.execute("update user set u_journey=%s where u_id=%s", (journey,session['uid'],))
+								cur2.execute("update users set u_journey=%s where u_id=%s", (journey,session['uid'],))
 								conn.commit()
 
-								cur.execute("select * from user where u_id=%s",(session['uid'],))
+								cur.execute("select * from users where u_id=%s",(session['uid'],))
 								u_info = cur.fetchone()
 				
 								for row in u_info:
@@ -1619,7 +1641,7 @@ def profilesetup():
 		try:
 			with get_connection() as conn:
 				db = conn.cursor()
-				db.execute("insert into user (u_username,u_email,u_password,u_age,u_gender,u_vegan,u_allergy,u_weight,u_feet,u_inches,u_bmi,u_activitylevel,u_protein,u_carb,u_fat,u_fiber,u_calories,u_journey,u_bodyfat,u_status,u_startdate) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(name,email,password,age,gender,vegan,allergy,weight_kg,feet,inches,int(BMI),activity_level,protein,carb,fat,fiber,calorie,journey,bodyfat,body_status,datetime.today().strftime ('%Y-%m-%d'),))
+				db.execute("insert into users (u_username,u_email,u_password,u_age,u_gender,u_vegan,u_allergy,u_weight,u_feet,u_inches,u_bmi,u_activitylevel,u_protein,u_carb,u_fat,u_fiber,u_calories,u_journey,u_bodyfat,u_status,u_startdate) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(name,email,password,age,gender,vegan,allergy,weight_kg,feet,inches,int(BMI),activity_level,protein,carb,fat,fiber,calorie,journey,bodyfat,body_status,datetime.today().strftime ('%Y-%m-%d'),))
 				conn.commit()
 				flash('Successfully Registered')
 
@@ -1638,7 +1660,7 @@ def profile():
 		try:
 			with get_connection() as conn:
 				db = conn.cursor()
-				db.execute("select * from user where u_id=%s",(uid,))
+				db.execute("select * from users where u_id=%s",(uid,))
 				u_info = db.fetchone()
 
 				
@@ -2201,7 +2223,7 @@ def index():
 		try:	
 			with get_connection() as conn:
 				cur = conn.cursor()
-				cur.execute("select * from user where u_id=%s",(session['uid'],))
+				cur.execute("select * from users where u_id=%s",(session['uid'],))
 				u_data = cur.fetchone()
 				weight = u_data[6]
 
@@ -2217,7 +2239,7 @@ def index():
 		try:
 			with get_connection() as conn:
 				cur = conn.cursor()
-				cur.execute("update user set u_weight=%s where u_id=%s",(getweight,session['uid'],))
+				cur.execute("update users set u_weight=%s where u_id=%s",(getweight,session['uid'],))
 				conn.commit()
 
 				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(getweight,datetime.today().strftime ('%Y-%m-%d'),session['uid'],))
@@ -2225,7 +2247,7 @@ def index():
 					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (session['uid'], datetime.today().strftime('%Y-%m-%d'), getweight))
 				conn.commit()
 
-				cur.execute("select * from user where u_id=%s",(session['uid'],))
+				cur.execute("select * from users where u_id=%s",(session['uid'],))
 				u_data = cur.fetchone()
 				weight = u_data[6]
 
