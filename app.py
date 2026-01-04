@@ -26,7 +26,7 @@ from ultralytics import YOLO
 
 # Database - PostgreSQL Only
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import DictCursor
 
 import torch
 import ultralytics
@@ -46,7 +46,7 @@ def get_connection():
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
         
     try:
-        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
+        conn = psycopg2.connect(database_url, cursor_factory=DictCursor)
         return conn
     except psycopg2.Error as e:
         print(f"Error connecting to database: {e}")
@@ -448,7 +448,14 @@ def detect_and_visualize(img):
 
     px_per_cm = estimate_px_per_cm(w)
 
-    results = model.predict(img, imgsz=640, conf=0.25, verbose=False)[0]
+    # Resize for memory efficiency on Render Free Tier
+    img = cv2.resize(img, (640, 640))
+
+    try:
+        results = model.predict(img, imgsz=640, conf=0.25, verbose=False, device="cpu")[0]
+    except Exception as e:
+        print(f"YOLO Inference Error: {e}")
+        return None, 0, [], []
 
     # --- Annotated output image ---
     # results.plot() already returns a BGR image (OpenCV style)
@@ -1514,51 +1521,61 @@ def login():
 					flash(f'The email address ({email}) that you entered does not exist in our database.')
 					return redirect(url_for('login'))
 				else:
-					for row in u_info:
-						session['uid'] = row[0]
-						u_pass = row[2] 
-						u_name = row[1]
-						u_date = row[-1]
+					# Use first result (email is unique)
+					row = u_info[0]
+					
+					# Secure dictionary access
+					# DictCursor allows both keys and index, but keys are safer for schema changes
+					session['uid'] = row['u_id']
+					u_pass = row['u_password']
+					u_name = row['u_username']
+					u_date = row['u_startdate']
 					
 					if secure_pwd == u_pass:
-						days = []
 						flash(f'Your have successfully logged in as {u_name}')
 						session['u_logged'] = True
 						session['u_info'] = []
 						session['u_pass'] = password 
+						
+						# Populate session info compatible with list-index access used elsewhere
+						# DictRow iteration yields values, so this maintains backward compatibility
+						for val in row:
+							session['u_info'].append(val)
 
 						track_date = datetime.today().strftime ('%Y-%m-%d')
-						sdate = datetime.strptime(u_date, '%Y-%m-%d').date()
+						try:
+							sdate = datetime.strptime(u_date, '%Y-%m-%d').date()
+						except:
+							sdate = datetime.today().date() # Fallback
+
 						edate = datetime.strptime(track_date, '%Y-%m-%d').date()
 						delta = edate - sdate     
-
-						for i in range(delta.days + 1):
-							day = sdate + timedelta(days=i)
-							days.append(str(day))
-							journey = len(days)
+						journey = delta.days + 1
 
 						try:
 							with get_connection() as conn:
-								cur = conn.cursor()
-								cur2 = conn.cursor()
-								cur2.execute("update users set u_journey=%s where u_id=%s", (journey,session['uid'],))
-								conn.commit()
-
-								cur.execute("select * from users where u_id=%s",(session['uid'],))
-								u_info = cur.fetchone()
-				
-								for row in u_info:
-									session['u_info'].append(row)
+								with conn.cursor() as cur:
+									cur.execute("update users set u_journey=%s where u_id=%s", (journey, session['uid']))
+									conn.commit()
+									
+									# Update session info with new journey
+									cur.execute("select * from users where u_id=%s",(session['uid'],))
+									refreshed_data = cur.fetchone()
+									session['u_info'] = []
+									if refreshed_data:
+										for val in refreshed_data:
+											session['u_info'].append(val)
 
 						except Exception as e:
-							return (f'{e}')
-						finally:
-							conn.close()
+							print(f"Login update error: {e}")
+							# Don't fail login for this
+							pass
 
-						return redirect(url_for('index'))
+						return redirect(url_for('track')) # Redirect to dashboard (Track/Index)
 					else:
+						# Fixed: remove 'return 0' or incorrect redirects
 						session.pop('uid',None)
-						flash('Sorry the credentails you are using are invalid')
+						flash('Invalid email or password')
 						return redirect(url_for('login'))
 
 		except Exception as e:
@@ -2225,7 +2242,10 @@ def index():
 				cur = conn.cursor()
 				cur.execute("select * from users where u_id=%s",(session['uid'],))
 				u_data = cur.fetchone()
-				weight = u_data[6]
+				if u_data:
+					weight = u_data['u_weight'] if 'u_weight' in u_data else u_data[6]
+				else:
+					weight = 0
 
 
 		except Exception as e:
