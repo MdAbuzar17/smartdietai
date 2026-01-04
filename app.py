@@ -624,7 +624,7 @@ def delete_food():
 
 							item_to_db = ",".join(item_in_db)+","
 
-							cur2.execute("update tracking set track_breakfast=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (item_to_db,float(calorie),float(protein),float(carb),float(fat),track_date,uid))
+							cur2.execute("update tracking set track_breakfast=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(item_to_db),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 							conn.commit()
 
 					except Exception as e:
@@ -695,7 +695,7 @@ def delete_food():
 
 							item_to_db = ",".join(item_in_db)+","
 							
-							cur2.execute("update tracking set track_lunch=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (item_to_db,float(calorie),float(protein),float(carb),float(fat),track_date,uid))
+							cur2.execute("update tracking set track_lunch=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(item_to_db),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 							conn.commit()
 
 					except Exception as e:
@@ -759,7 +759,7 @@ def delete_food():
 
 							item_to_db = ",".join(item_in_db)+","
 				
-							cur2.execute("update tracking set track_snack=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (item_to_db,float(calorie),float(protein),float(carb),float(fat),track_date,uid))
+							cur2.execute("update tracking set track_snack=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(item_to_db),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 							conn.commit()
 
 					except Exception as e:
@@ -822,7 +822,7 @@ def delete_food():
 								item_in_db.remove(item)
 
 							item_to_db = ",".join(item_in_db)+","
-							cur2.execute("update tracking set track_dinner=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (item_to_db,float(calorie),float(protein),float(carb),float(fat),track_date,uid))
+							cur2.execute("update tracking set track_dinner=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(item_to_db),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 							conn.commit()
 
 					except Exception as e:
@@ -989,9 +989,20 @@ def edit_weight():
 
 		try:
 			with get_connection() as conn:
-				cur = conn.cursor()
-				cur.execute("update users set u_username=%s, u_email=%s, u_age=%s, u_gender=%s, u_vegan=%s, u_allergy=%s, u_weight=%s, u_feet=%s, u_inches=%s, u_bmi=%s, u_activitylevel=%s, u_protein=%s, u_carb=%s, u_fat=%s, u_fiber=%s, u_calories=%s, u_bodyfat=%s, u_status=%s where u_id=%s", (name, email, age, gender, vegan, allergy, weight_kg, feet, inches, int(BMI), activity_level, protein, carb, fat, fiber, calorie, bodyfat, body_status, session['uid']))
-				conn.commit()
+				with conn.cursor() as cur:
+					cur.execute(
+						"""UPDATE users SET u_username=%s, u_email=%s, u_age=%s, u_gender=%s, 
+						   u_vegan=%s, u_allergy=%s, u_weight=%s, u_feet=%s, u_inches=%s, 
+						   u_bmi=%s, u_activitylevel=%s, u_protein=%s, u_carb=%s, u_fat=%s, 
+						   u_fiber=%s, u_calories=%s, u_bodyfat=%s, u_status=%s WHERE u_id=%s""", 
+						(
+							str(name), str(email), int(age), str(gender), str(vegan), str(allergy), 
+							float(weight_kg), int(feet), int(inches), int(BMI), str(activity_level), 
+							float(protein), float(carb), float(fat), float(fiber), float(calorie), 
+							float(bodyfat), str(body_status), int(session['uid'])
+						)
+					)
+					conn.commit()
 				
 				# Update session info
 				session['u_info'] = [] # Clear and reload
@@ -1002,9 +1013,11 @@ def edit_weight():
 
 				# SYNC TO DAILY PROGRESS (User Request)
 				# Also update 'progress' table for today so it shows in daily/weekly stats
-				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(weight_kg,datetime.today().strftime ('%Y-%m-%d'),session['uid'],))
+				# SYNC TO DAILY PROGRESS
+				# Explicit casting
+				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(float(weight_kg), str(datetime.today().strftime('%Y-%m-%d')), int(session['uid'])))
 				if cur.rowcount == 0:
-					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (session['uid'], datetime.today().strftime('%Y-%m-%d'), weight_kg))
+					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (int(session['uid']), str(datetime.today().strftime('%Y-%m-%d')), float(weight_kg)))
 				
 				# Update Weekly Average Logic (duplicated from index route)
 				days = []
@@ -1166,29 +1179,24 @@ def add_successful():
 			cur2 = conn.cursor()
 			
 			if mealtime == "Breakfast":
-				meal_input = track_info[0][2] + food[0] +","
-				
-				cur2.execute("update tracking set track_breakfast=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (meal_input,float(calorie),float(protein),float(carb),float(fat),track_date,uid))
+				meal_input = (track_info[0][2] or "") + food[0] +","
+				cur2.execute("update tracking set track_breakfast=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 				conn.commit()
 
 
 			if mealtime == "Lunch":
-				meal_input = track_info[0][3] + food[0] +","
-				
-				
-				cur2.execute("update tracking set track_lunch=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (meal_input,float(calorie),float(protein),float(carb),float(fat),track_date,uid))
+				meal_input = (track_info[0][3] or "") + food[0] +","
+				cur2.execute("update tracking set track_lunch=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 				conn.commit()
 
 			if mealtime == "Snack":
-				meal_input = track_info[0][4] + food[0] +","
-				
-				cur2.execute("update tracking set track_snack=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (meal_input,float(calorie),float(protein),float(carb),float(fat),track_date,uid))
+				meal_input = (track_info[0][4] or "") + food[0] +","
+				cur2.execute("update tracking set track_snack=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 				conn.commit()
 
 			if mealtime == "Dinner":
-				meal_input = track_info[0][5] + food[0] +","
-				
-				cur2.execute("update tracking set track_dinner=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (meal_input,float(calorie),float(protein),float(carb),float(fat),track_date,uid))
+				meal_input = (track_info[0][5] or "") + food[0] +","
+				cur2.execute("update tracking set track_dinner=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 				conn.commit()
 			
 
@@ -1479,7 +1487,7 @@ def delete_track_item():
 							new_items_str += "," 
 							
 						cur.execute(f"UPDATE tracking SET {db_col}=%s, track_calorie=%s, track_protein=%s, track_carb=%s, track_fat=%s WHERE track_date=%s AND u_id=%s",
-									(new_items_str, new_cal, new_prot, new_carb, new_fat, today, uid))
+									(str(new_items_str), float(new_cal), float(new_prot), float(new_carb), float(new_fat), str(today), int(uid)))
 						conn.commit()
 
 	except Exception as e:
@@ -1655,19 +1663,35 @@ def profilesetup():
 		lunch = int((calorie-500)* 0.35)
 		dinner = int((calorie-500)* 0.25)
 
+		# Insert into User table with EXPLICIT columns and strict casting
 		try:
 			with get_connection() as conn:
-				db = conn.cursor()
-				db.execute("insert into users (u_username,u_email,u_password,u_age,u_gender,u_vegan,u_allergy,u_weight,u_feet,u_inches,u_bmi,u_activitylevel,u_protein,u_carb,u_fat,u_fiber,u_calories,u_journey,u_bodyfat,u_status,u_startdate) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(name,email,password,age,gender,vegan,allergy,weight_kg,feet,inches,int(BMI),activity_level,protein,carb,fat,fiber,calorie,journey,bodyfat,body_status,datetime.today().strftime ('%Y-%m-%d'),))
-				conn.commit()
-				flash('Successfully Registered')
+				with conn.cursor() as cur:
+					cur.execute(
+						"""INSERT INTO users (
+							u_username, u_email, u_password, u_age, u_gender, 
+							u_vegan, u_allergy, u_weight, u_feet, u_inches, 
+							u_bmi, u_activitylevel, u_protein, u_carb, u_fat, 
+							u_fiber, u_calories, u_journey, u_bodyfat, u_status, u_startdate
+						) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", 
+						(
+							str(name), str(email), str(password), int(age), str(gender),
+							str(vegan), str(allergy), float(weight_kg), int(feet), int(inches),
+							int(BMI), str(activity_level), float(protein), float(carb), float(fat),
+							float(fiber), float(calorie), int(journey), float(bodyfat), str(body_status), 
+							str(datetime.today().strftime('%Y-%m-%d'))
+						)
+					)
+					conn.commit()
+					flash('Successfully Registered')
 
 		except Exception as e:
+			print(f"Registration Error: {e}")
 			return (f'{e}')
 		finally:
-			conn.close()
+			if 'conn' in locals():
+				conn.close()
 
-	
 		return redirect(url_for('login'))
 
 @app.route("/profile", methods = ['GET','POST'])
