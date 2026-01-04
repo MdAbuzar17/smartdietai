@@ -20,7 +20,6 @@ import cv2
 
 # Framework & Environment
 from flask import Flask, redirect, url_for, render_template, request, flash, session
-from dotenv import load_dotenv
 
 # Machine Learning
 from ultralytics import YOLO
@@ -29,8 +28,6 @@ from ultralytics import YOLO
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-# Load environment variables
-load_dotenv()
 
 # ==================== DATABASE CONNECTION & SETUP ====================
 def get_connection():
