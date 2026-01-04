@@ -28,6 +28,9 @@ from ultralytics import YOLO
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+import torch
+import ultralytics
+import ultralytics.nn.tasks
 
 # ==================== DATABASE CONNECTION & SETUP ====================
 def get_connection():
@@ -333,22 +336,22 @@ MODEL_PATH = BASE_DIR / "models" / "best_v8.pt"
 # Load YOLO model
 print(f"Loading YOLO model from: {MODEL_PATH}")
 
-import torch
-import ultralytics
-import ultralytics.nn.tasks
-from torch.nn.modules.container import Sequential
-from ultralytics.nn.modules.conv import Conv
-from ultralytics.nn.modules.block import Bottleneck, C2f
-from ultralytics.nn.modules.head import Detect
+# import torch
+# import ultralytics
+# import ultralytics.nn.tasks
+# from torch.nn.modules.container import Sequential
+# from ultralytics.nn.modules.conv import Conv
+# from ultralytics.nn.modules.block import Bottleneck, C2f
+# from ultralytics.nn.modules.head import Detect
 
-torch.serialization.add_safe_globals([
-    ultralytics.nn.tasks.DetectionModel,
-    Sequential,
-    Conv,
-    Bottleneck,
-    C2f,
-    Detect
-])
+# torch.serialization.add_safe_globals([
+#     ultralytics.nn.tasks.DetectionModel,
+#     Sequential,
+#     Conv,
+#     Bottleneck,
+#     C2f,
+#     Detect
+# ])
 
 model = YOLO(str(MODEL_PATH))
 class_names = model.model.names
