@@ -57,19 +57,19 @@ def fix_user_table_name():
     try:
         conn = get_connection()
         cur = conn.cursor()
+        try:
+            cur.execute("""
+                SELECT to_regclass('public."user"');
+            """)
+            result = cur.fetchone()
 
-        cur.execute("""
-            SELECT to_regclass('public."user"');
-        """)
-        result = cur.fetchone()
-
-        if result and result['to_regclass']:
-            cur.execute('ALTER TABLE "user" RENAME TO users;')
-            conn.commit()
-            print('Renamed table "user" to users')
-
-        cur.close()
-        conn.close()
+            if result and result['to_regclass']:
+                cur.execute('ALTER TABLE "user" RENAME TO users;')
+                conn.commit()
+                print('Renamed table "user" to users')
+        finally:
+            cur.close()
+            conn.close()
     except Exception as e:
         print("User table rename skipped:", e)
 
@@ -134,20 +134,19 @@ def create_tables():
         )
         """
     )
-    conn = None
     try:
         conn = get_connection()
         cur = conn.cursor()
-        for command in commands:
-            cur.execute(command)
-        conn.commit()
-        cur.close()
-        print("Database tables created successfully (if not existed).")
+        try:
+            for command in commands:
+                cur.execute(command)
+            conn.commit()
+            print("Database tables created successfully (if not existed).")
+        finally:
+            cur.close()
+            conn.close()
     except Exception as e:
         print(f"Error creating tables: {e}")
-    finally:
-        if conn is not None:
-            conn.close()
 
 # Initialize Database
 fix_user_table_name()
@@ -565,284 +564,104 @@ def delete_food():
 		uid = session['uid']
 		track_date = str(datetime.today().strftime ('%Y-%m-%d'))
 		
-		bf_list = []
-		lunch_list = []
-		dinner_list = []
-		snack_list = []
-		# for i in session['bf_numbers']:
+		# Session keys mapping
+		session_keys = {
+			"Breakfast": ('bf_meal', 'bf_numbers', 'track_breakfast'),
+			"Lunch": ('lunch_meal', 'lunch_numbers', 'track_lunch'),
+			"Snack": ('snack_meal', 'snack_numbers', 'track_snack'),
+			"Dinner": ('dinner_meal', 'dinner_numbers', 'track_dinner')
+		}
 
-			
-		# 	print(float(i))
-		# 	session.modified = True
-		# 	print(type(i))
-		if mealtime == "Breakfast":
-			
-			for i in bf_meal:
-				if item == i[0]:
-					bf_meal.remove(i)
+		if mealtime not in session_keys:
+			return render_template('add_food.html', mealtime=mealtime)
 
-			for i in session['bf_meal']:
-				if item == i[0]:
-					session['bf_meal'].remove(i)
-					session.modified = True
-
-			
-					
-
-				
-					for j in session['bf_numbers']:
-						j = round(Decimal(j), 2)
-						bf_list.append(j)
-					
-				
-					bf_list[0]-=round(Decimal(i[3]), 2)
-					bf_list[1]-=round(Decimal(i[4]), 2)
-					bf_list[2]-=round(Decimal(i[5]), 2)
-					bf_list[3]-=round(Decimal(i[6]), 2)
-
-					try:
-						with get_connection() as conn:
-							cur = conn.cursor()
-						
-							cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
-							track_info= cur.fetchall()
-				
-							calorie = round(Decimal(track_info[0][6]), 2)-round(Decimal(i[3]), 2)
-							protein = round(Decimal(track_info[0][7]), 2)-round(Decimal(i[4]), 2)
-							carb = round(Decimal(track_info[0][8]), 2)-round(Decimal(i[5]), 2)
-							fat = round(Decimal(track_info[0][9]), 2)-round(Decimal(i[6]), 2)
-						
-							cur2 = conn.cursor()
-							cur2.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
-							u_data = cur2.fetchone()
-
-							item_in_db = u_data[2].split(",")[:-1]
-							item_to_db = ""
-
-							if item in item_in_db:
-								item_in_db.remove(item)
-
-							item_to_db = ",".join(item_in_db)+","
-
-							cur2.execute("update tracking set track_breakfast=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(item_to_db),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
-							conn.commit()
-
-					except Exception as e:
-						return (f'{e}')
-					finally:
-						conn.close()
-
-
-					session['bf_numbers'].clear()
-
-					[x for x in session['bf_numbers'] if x]
-
-					session.modified = True
-					for i in bf_list:
-						session['bf_numbers'].append(i)	
-						session.modified = True
-
-					
-
-					
-					
-					
-
+		meal_list_key, numbers_key, db_col = session_keys[mealtime]
 		
-		if mealtime == "Lunch":
-			foodlist = session['lunch_meal']
-
-			for i in lunch_meal:
-				if item == i[0]:
-					lunch_meal.remove(i)
-
-			for i in foodlist:
-				if item == i[0]:
-					foodlist.remove(i)
-				
+		# Use generic list for updates to avoid code duplication
+		# NOTE: app.py uses global lists bf_meal etc but updates session. 
+		# We'll focus on session updates as they persist.
+		
+		try:
+			conn = get_connection()
+			cur = conn.cursor()
 			
-					for j in session['lunch_numbers']:
-						j = round(Decimal(j), 2)
-						lunch_list.append(j)
-					
-				
-					lunch_list[0]-=round(Decimal(i[3]), 2)
-					lunch_list[1]-=round(Decimal(i[4]), 2)
-					lunch_list[2]-=round(Decimal(i[5]), 2)
-					lunch_list[3]-=round(Decimal(i[6]), 2)
-
-					try:
-						with get_connection() as conn:
-							cur = conn.cursor()
-						
-							cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
-							track_info= cur.fetchall()
-				
-							calorie = round(Decimal(track_info[0][6]), 2)-round(Decimal(i[3]), 2)
-							protein = round(Decimal(track_info[0][7]), 2)-round(Decimal(i[4]), 2)
-							carb = round(Decimal(track_info[0][8]), 2)-round(Decimal(i[5]), 2)
-							fat = round(Decimal(track_info[0][9]), 2)-round(Decimal(i[6]), 2)
-						
-							cur2 = conn.cursor()
-							cur2.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
-							u_data = cur2.fetchone()
-
-							item_in_db = u_data[3].split(",")[:-1]
-							item_to_db = ""
-
-							if item in item_in_db:
-								item_in_db.remove(item)
-
-							item_to_db = ",".join(item_in_db)+","
-							
-							cur2.execute("update tracking set track_lunch=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(item_to_db),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
-							conn.commit()
-
-					except Exception as e:
-						return (f'{e}')
-					finally:
-						conn.close()
-
-					session['lunch_numbers'].clear()
-
-					[x for x in session['lunch_numbers'] if x]
-
-					session.modified = True
-					for i in lunch_list:
-						session['lunch_numbers'].append(i)	
-						session.modified = True
-
-
-		if mealtime == "Snack":
-			foodlist = session['snack_meal']
-
-			for i in snack_meal:
-				if item == i[0]:
-					snack_meal.remove(i)
-
-			for i in foodlist:
-				if item == i[0]:
-					foodlist.remove(i)
-				
+			# 1. Update Session and Calculate diffs
+			list_to_update = session.get(meal_list_key, [])
+			numbers_to_update = session.get(numbers_key, [0,0,0,0])
 			
-					for j in session['snack_numbers']:
-						j = round(Decimal(j), 2)
-						snack_list.append(j)
-					
-				
-					snack_list[0]-=round(Decimal(i[3]), 2)
-					snack_list[1]-=round(Decimal(i[4]), 2)
-					snack_list[2]-=round(Decimal(i[5]), 2)
-					snack_list[3]-=round(Decimal(i[6]), 2)
-
-					try:
-						with get_connection() as conn:
-							cur = conn.cursor()
-						
-							cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
-							track_info= cur.fetchall()
-				
-							calorie = round(Decimal(track_info[0][6]), 2)-round(Decimal(i[3]), 2)
-							protein = round(Decimal(track_info[0][7]), 2)-round(Decimal(i[4]), 2)
-							carb = round(Decimal(track_info[0][8]), 2)-round(Decimal(i[5]), 2)
-							fat = round(Decimal(track_info[0][9]), 2)-round(Decimal(i[6]), 2)
-						
-							cur2 = conn.cursor()
-							cur2.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
-							u_data = cur2.fetchone()
-
-							item_in_db = u_data[4].split(",")[:-1]
-							item_to_db = ""
-
-							if item in item_in_db:
-								item_in_db.remove(item)
-
-							item_to_db = ",".join(item_in_db)+","
-				
-							cur2.execute("update tracking set track_snack=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(item_to_db),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
-							conn.commit()
-
-					except Exception as e:
-						return (f'{e}')
-					finally:
-						conn.close()
-
-					session['snack_numbers'].clear()
-
-					[x for x in session['snack_numbers'] if x]
-
-					session.modified = True
-					for i in snack_list:
-						session['snack_numbers'].append(i)	
-						session.modified = True
-
-					
-
-		if mealtime == "Dinner":
-			foodlist = session['dinner_meal']
-			for i in dinner_meal:
-				if item == i[0]:
-					dinner_meal.remove(i)
-
-			for i in foodlist:
-				if item == i[0]:
-					foodlist.remove(i)
-				
+			removed_item = None
+			# Find item in session list (list of lists)
+			# Structure: [name, qty, unit, cal, prot, carb, fat]
+			idx_to_remove = -1
+			for idx, i in enumerate(list_to_update):
+				if item == i[0]: # Name match
+					idx_to_remove = idx
+					removed_item = i
+					break
 			
-					for j in session['dinner_numbers']:
-						j = round(Decimal(j), 2)
-						dinner_list.append(j)
+			if idx_to_remove != -1:
+				list_to_update.pop(idx_to_remove)
+				
+				# Update numbers
+				cal = float(removed_item[3])
+				prot = float(removed_item[4])
+				carb = float(removed_item[5])
+				fat = float(removed_item[6])
+				
+				numbers_to_update[0] = max(0, numbers_to_update[0] - cal)
+				numbers_to_update[1] = max(0, numbers_to_update[1] - prot)
+				numbers_to_update[2] = max(0, numbers_to_update[2] - carb)
+				numbers_to_update[3] = max(0, numbers_to_update[3] - fat)
+				
+				session[meal_list_key] = list_to_update
+				session[numbers_key] = numbers_to_update
+				session.modified = True
+
+				# 2. Update Database
+				try:
+					cur.execute("select * from tracking where track_date=%s and u_id=%s", (track_date, uid))
+					track_info = cur.fetchone()
 					
-				
-					dinner_list[0]-=round(Decimal(i[3]), 2)
-					dinner_list[1]-=round(Decimal(i[4]), 2)
-					dinner_list[2]-=round(Decimal(i[5]), 2)
-					dinner_list[3]-=round(Decimal(i[6]), 2)
-
-					try:
-						with get_connection() as conn:
-							cur = conn.cursor()
+					if track_info:
+						# Update Totals
+						curr_cal = float(track_info['track_calorie'] or 0)
+						curr_prot = float(track_info['track_protein'] or 0)
+						curr_carb = float(track_info['track_carb'] or 0)
+						curr_fat = float(track_info['track_fat'] or 0)
 						
-							cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
-							track_info= cur.fetchall()
-				
-							calorie = round(Decimal(track_info[0][6]), 2)-round(Decimal(i[3]), 2)
-							protein = round(Decimal(track_info[0][7]), 2)-round(Decimal(i[4]), 2)
-							carb = round(Decimal(track_info[0][8]), 2)-round(Decimal(i[5]), 2)
-							fat = round(Decimal(track_info[0][9]), 2)-round(Decimal(i[6]), 2)
+						new_cal = max(0, curr_cal - cal)
+						new_prot = max(0, curr_prot - prot)
+						new_carb = max(0, curr_carb - carb)
+						new_fat = max(0, curr_fat - fat)
 						
-							cur2 = conn.cursor()
-							cur2.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
-							u_data = cur2.fetchone()
+						# Update Meal String
+						current_str = track_info[db_col] or ""
+						# Logic from original: remove first occurrence of item name
+						# Original used string split logic that was a bit fragile around commas
+						# Replicating safe strict removal:
+						items_in_db = [x.strip() for x in current_str.split(',') if x.strip()]
+						if item in items_in_db:
+							items_in_db.remove(item)
+						
+						new_str = ",".join(items_in_db) + "," if items_in_db else ""
+						
+						query = f"update tracking set {db_col}=%s, track_calorie=%s, track_protein=%s, track_carb=%s, track_fat=%s where track_date=%s and u_id=%s"
+						cur.execute(query, (str(new_str), float(new_cal), float(new_prot), float(new_carb), float(new_fat), str(track_date), int(uid)))
+						conn.commit()
+						
+				except Exception as e:
+					print(f"DB Update Error in delete_food: {e}")
+					# Don't crash request if session update worked
+					return f'{e}'
 
-							item_in_db = u_data[5].split(",")[:-1]
-							item_to_db = ""
+		except Exception as e:
+			print(f"Error in delete_food: {e}")
+			return f'{e}'
+		finally:
+			if 'cur' in locals(): cur.close()
+			if 'conn' in locals(): conn.close()
 
-							if item in item_in_db:
-								item_in_db.remove(item)
-
-							item_to_db = ",".join(item_in_db)+","
-							cur2.execute("update tracking set track_dinner=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(item_to_db),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
-							conn.commit()
-
-					except Exception as e:
-						return (f'{e}')
-					finally:
-						conn.close()
-
-					session['dinner_numbers'].clear()
-
-					[x for x in session['dinner_numbers'] if x]
-
-					session.modified = True
-					for i in dinner_list:
-						session['dinner_numbers'].append(i)	
-						session.modified = True
-
-					
-				
-								
-		return render_template('add_food.html',mealtime=mealtime)
+		return render_template('add_food.html', mealtime=mealtime)
 	
 
 
@@ -890,9 +709,11 @@ def pwd_encode(pwd):
 def edit_weight():
 	if request.method == 'GET':
 
+
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
 				cur.execute("select * from users where u_id=%s",(session['uid'],))
 				u_data = cur.fetchone()
 				name = u_data[1]
@@ -905,11 +726,12 @@ def edit_weight():
 				inch = u_data[8]
 				vegan = u_data[12]
 				allergy = u_data[13]
+			finally:
+				cur.close()
+				conn.close()
 
 		except Exception as e:
 			return (f'{e}')
-		finally:
-			conn.close()
 		
 
 		return render_template('edit_profile.html', name= name,
@@ -988,22 +810,23 @@ def edit_weight():
 		fiber = int(calorie/1000*14)
 
 		try:
-			with get_connection() as conn:
-				with conn.cursor() as cur:
-					cur.execute(
-						"""UPDATE users SET u_username=%s, u_email=%s, u_age=%s, u_gender=%s, 
-						   u_vegan=%s, u_allergy=%s, u_weight=%s, u_feet=%s, u_inches=%s, 
-						   u_bmi=%s, u_activitylevel=%s, u_protein=%s, u_carb=%s, u_fat=%s, 
-						   u_fiber=%s, u_calories=%s, u_bodyfat=%s, u_status=%s WHERE u_id=%s""", 
-						(
-							str(name), str(email), int(age), str(gender), str(vegan), str(allergy), 
-							float(weight_kg), int(feet), int(inches), int(BMI), str(activity_level), 
-							float(protein), float(carb), float(fat), float(fiber), float(calorie), 
-							float(bodyfat), str(body_status), int(session['uid'])
-						)
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
+				cur.execute(
+					"""UPDATE users SET u_username=%s, u_email=%s, u_age=%s, u_gender=%s, 
+					   u_vegan=%s, u_allergy=%s, u_weight=%s, u_feet=%s, u_inches=%s, 
+					   u_bmi=%s, u_activitylevel=%s, u_protein=%s, u_carb=%s, u_fat=%s, 
+					   u_fiber=%s, u_calories=%s, u_bodyfat=%s, u_status=%s WHERE u_id=%s""", 
+					(
+						str(name), str(email), int(age), str(gender), str(vegan), str(allergy), 
+						float(weight_kg), int(feet), int(inches), int(BMI), str(activity_level), 
+						float(protein), float(carb), float(fat), float(fiber), float(calorie), 
+						float(bodyfat), str(body_status), int(session['uid'])
 					)
-					conn.commit()
-				
+				)
+				conn.commit()
+			
 				# Update session info
 				session['u_info'] = [] # Clear and reload
 				cur.execute("select * from users where u_id=%s",(session['uid'],))
@@ -1018,6 +841,7 @@ def edit_weight():
 				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(float(weight_kg), str(datetime.today().strftime('%Y-%m-%d')), int(session['uid'])))
 				if cur.rowcount == 0:
 					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (int(session['uid']), str(datetime.today().strftime('%Y-%m-%d')), float(weight_kg)))
+				conn.commit()
 				
 				# Update Weekly Average Logic (duplicated from index route)
 				days = []
@@ -1065,17 +889,19 @@ def edit_weight():
 					if cur.rowcount == 0:
 						cur.execute("insert into progress_week (u_id, pw_num, pw_weight) values (%s,%s,%s)", (session['uid'], this_weeknum, week_weight))
 					
+					conn.commit()
+
 				except Exception as ex:
 					print(f"Error calculating week stats in profile edit: {ex}", flush=True)
 
-				conn.commit()
 					
+			finally:
+				cur.close()
+				conn.close()
+
 		except Exception as e:
 			print(f"Error updating profile: {e}", flush=True)
 			return (f'{e}')
-		finally:
-			if 'conn' in locals():
-				conn.close()
 
 		return redirect(url_for('profile'))
 
@@ -1164,46 +990,49 @@ def add_successful():
 		flash(f"Could not find food item. Please Check Spelling.")
 		return render_template('add_food.html', mealtime=mealtime)
 	try:
-		with get_connection() as conn:
-			cur = conn.cursor()
-					
+		conn = get_connection()
+		cur = conn.cursor()
+		try:
+				
 			cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
 			track_info= cur.fetchall()
-			
+		
 
 			calorie = round(Decimal(track_info[0][6]), 2)+round(Decimal(food[3]), 2)
 			protein = round(Decimal(track_info[0][7]), 2)+round(Decimal(food[4]), 2)
 			carb = round(Decimal(track_info[0][8]), 2)+round(Decimal(food[5]), 2)
 			fat = round(Decimal(track_info[0][9]), 2)+round(Decimal(food[6]), 2)
-					
-			cur2 = conn.cursor()
+				
 			
 			if mealtime == "Breakfast":
 				meal_input = (track_info[0][2] or "") + food[0] +","
-				cur2.execute("update tracking set track_breakfast=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
+				cur.execute("update tracking set track_breakfast=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 				conn.commit()
 
 
 			if mealtime == "Lunch":
 				meal_input = (track_info[0][3] or "") + food[0] +","
-				cur2.execute("update tracking set track_lunch=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
+				cur.execute("update tracking set track_lunch=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 				conn.commit()
 
 			if mealtime == "Snack":
 				meal_input = (track_info[0][4] or "") + food[0] +","
-				cur2.execute("update tracking set track_snack=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
+				cur.execute("update tracking set track_snack=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 				conn.commit()
 
 			if mealtime == "Dinner":
 				meal_input = (track_info[0][5] or "") + food[0] +","
-				cur2.execute("update tracking set track_dinner=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
+				cur.execute("update tracking set track_dinner=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
 				conn.commit()
 			
+			
+
+		finally:
+			cur.close()
+			conn.close()
 
 	except Exception as e:
 		return (f'{e}')
-	finally:
-		conn.close()
 
 	
 	if mealtime == "Breakfast":
@@ -1257,96 +1086,94 @@ def add_successful():
 	return render_template('add_food.html',mealtime=mealtime)
 
 @app.route("/track", methods = ['GET','POST'])
+@app.route("/track", methods = ['GET','POST'])
 def track():
 	if request.method == 'GET':
 		uid = session['uid']
-		
 		track_date = str(datetime.today().strftime ('%Y-%m-%d'))
 
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
+				# 1. Fetch current tracking data
 				cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid))
-				track_info= cur.fetchall()
+				track_info = cur.fetchall()
 
+				# 2. If no data, Initialize
+				if not track_info:
+					breakfast=""
+					lunch = ""
+					dinner = ""
+					snack = ""
+					cur.execute("insert into tracking (track_date,u_id,track_calorie,track_protein,track_fat,track_carb,track_breakfast,track_lunch,track_snack,track_dinner) values (%s,%s,0,0,0,0,%s,%s,%s,%s)",(track_date,uid,breakfast,lunch,snack,dinner))
+					conn.commit()
 
-				if track_info:
-					pass
-				else:
-					try:
-						with get_connection() as conn:
-							cur = conn.cursor()
-							breakfast=""
-							lunch = ""
-							dinner = ""
-							snack = ""
-							cur.execute("insert into tracking (track_date,u_id,track_calorie,track_protein,track_fat,track_carb,track_breakfast,track_lunch,track_snack,track_dinner) values (%s,%s,0,0,0,0,%s,%s,%s,%s)",(track_date,uid,breakfast,lunch,snack,dinner))
-							conn.commit()
+					# Fetch again after insert
+					cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid))
+					track_info = cur.fetchall()
+					
+					# Sanity check for comma issue (legacy fix)
+					if track_info and track_info[0]['track_breakfast'] == ",":
+						cur.execute("update tracking set track_breakfast=%s",("",))
+						conn.commit()
+						# Refetch 
+						cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid))
+						track_info = cur.fetchall()
 
-							cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid))
-							track_info= cur.fetchall()
-							if track_info[0][2] == ",":
-								cur.execute("update tracking set track_breakfast=%s",("",))
-								conn.commit()
-					except Exception as e:
-						return (f'{e}')
-					finally:
-						conn.close()
+				# 3. Process Data for Display
+				if not track_info:
+					# Should not happen after insert
+					return "Error initializing tracking data"
 
-				cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid))
-				track_info= cur.fetchall()
-
+				row = track_info[0]
+				
+				# Get Goals from Session
 				protein_goal = session['u_info'][14]
 				carb_goal = session['u_info'][15]
 				fat_goal = session['u_info'][16]
-				breakfast = track_info[0][2]
-				lunch = track_info[0][3]
-				snack = track_info[0][4]
-				dinner = track_info[0][5]
+				calorie_goal = session['u_info'][17]
 
-				# Parse into lists for display
+				# Get Current Values
+				breakfast = row['track_breakfast']
+				lunch = row['track_lunch']
+				snack = row['track_snack']
+				dinner = row['track_dinner']
+
+				protein_consumed = row['track_protein']
+				carb_consumed = row['track_carb']
+				fat_consumed = row['track_fat']
+				calorie_consumed = row['track_calorie']
+
+				# Parse lists
 				breakfast_list = [x.strip() for x in breakfast.split(',') if x.strip()]
 				lunch_list = [x.strip() for x in lunch.split(',') if x.strip()]
 				snack_list = [x.strip() for x in snack.split(',') if x.strip()]
 				dinner_list = [x.strip() for x in dinner.split(',') if x.strip()]
 
-					
-				protein_consumed = track_info[0][7]
-				carb_consumed = track_info[0][8]
-				fat_consumed = track_info[0][9]
-
-				calorie_goal = session['u_info'][17]
-				calorie_consumed = track_info[0][6]
-				
 				# Auto-repair negative values
 				if protein_consumed < 0: protein_consumed = 0
 				if carb_consumed < 0: carb_consumed = 0
 				if fat_consumed < 0: fat_consumed = 0
 				if calorie_consumed < 0: calorie_consumed = 0
 
-				# Auto-repair phantom values (if lists empty, but DB has values)
+				# Auto-repair phantom values
 				if not breakfast_list and not lunch_list and not snack_list and not dinner_list:
 					protein_consumed = 0.0
 					carb_consumed = 0.0
 					fat_consumed = 0.0
 					calorie_consumed = 0.0
 
-				protein_percent = "{:.2f}".format((protein_consumed/protein_goal) * 100)
-				carb_percent = "{:.2f}".format((carb_consumed/carb_goal) * 100)
-				fat_percent = "{:.2f}".format((fat_consumed/fat_goal) * 100)
-				calorie_percent = "{:.2f}".format((calorie_consumed/calorie_goal) * 100)
+				# Calculate Percentages
+				protein_percent = "{:.2f}".format((protein_consumed/protein_goal) * 100) if protein_goal > 0 else 0
+				carb_percent = "{:.2f}".format((carb_consumed/carb_goal) * 100) if carb_goal > 0 else 0
+				fat_percent = "{:.2f}".format((fat_consumed/fat_goal) * 100) if fat_goal > 0 else 0
+				calorie_percent = "{:.2f}".format((calorie_consumed/calorie_goal) * 100) if calorie_goal > 0 else 0
 					
-				try:
-					with get_connection() as conn:
-						cur = conn.cursor()
-						cur.execute("update tracking set track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (calorie_consumed,protein_consumed,carb_consumed,fat_consumed,track_date,uid,))
-						conn.commit()
+				# Update DB with corrected values if needed
+				cur.execute("update tracking set track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (float(calorie_consumed),float(protein_consumed),float(carb_consumed),float(fat_consumed),track_date,uid,))
+				conn.commit()
 
-				except Exception as e:
-					return (f'{e}')
-				finally:
-					conn.close()
-					
 				return render_template('track.html',p_goal=protein_goal,
 											c_goal = carb_goal,
 											f_goal=fat_goal,
@@ -1370,10 +1197,13 @@ def track():
 											dinner_list=dinner_list,
 											)
 						
+			finally:
+				cur.close()
+				conn.close()
+		
 		except Exception as e:
+			print(f"Track Error: {e}")
 			return (f'{e}')
-		finally:
-			conn.close()
 		
 	else:
 		return render_template('track.html')
@@ -1521,8 +1351,9 @@ def login():
 		secure_pwd = pwd_encode(password)
 		msg=''
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
 				cur.execute("select * from users where u_email=%s",(email,))
 				u_info= cur.fetchall()
 				if not u_info:
@@ -1533,7 +1364,6 @@ def login():
 					row = u_info[0]
 					
 					# Secure dictionary access
-					# DictCursor allows both keys and index, but keys are safer for schema changes
 					session['uid'] = row['u_id']
 					u_pass = row['u_password']
 					u_name = row['u_username']
@@ -1545,8 +1375,6 @@ def login():
 						session['u_info'] = []
 						session['u_pass'] = password 
 						
-						# Populate session info compatible with list-index access used elsewhere
-						# DictRow iteration yields values, so this maintains backward compatibility
 						for val in row:
 							session['u_info'].append(val)
 
@@ -1561,35 +1389,34 @@ def login():
 						journey = delta.days + 1
 
 						try:
-							with get_connection() as conn:
-								with conn.cursor() as cur:
-									cur.execute("update users set u_journey=%s where u_id=%s", (journey, session['uid']))
-									conn.commit()
+							cur.execute("update users set u_journey=%s where u_id=%s", (journey, session['uid']))
+							conn.commit()
 									
-									# Update session info with new journey
-									cur.execute("select * from users where u_id=%s",(session['uid'],))
-									refreshed_data = cur.fetchone()
-									session['u_info'] = []
-									if refreshed_data:
-										for val in refreshed_data:
-											session['u_info'].append(val)
+							# Update session info with new journey
+							cur.execute("select * from users where u_id=%s",(session['uid'],))
+							refreshed_data = cur.fetchone()
+							session['u_info'] = []
+							if refreshed_data:
+								for val in refreshed_data:
+									session['u_info'].append(val)
 
 						except Exception as e:
 							print(f"Login update error: {e}")
-							# Don't fail login for this
 							pass
 
-						return redirect(url_for('track')) # Redirect to dashboard (Track/Index)
+						return redirect(url_for('track')) # Redirect to dashboard
 					else:
 						# Fixed: remove 'return 0' or incorrect redirects
 						session.pop('uid',None)
 						flash('Invalid email or password')
 						return redirect(url_for('login'))
 
+			finally:
+				cur.close()
+				conn.close()
+
 		except Exception as e:
 			return (f'{e}')
-		finally:
-			conn.close()
 
 @app.route("/setup", methods = ['GET','POST'])
 def profilesetup():
@@ -1665,32 +1492,34 @@ def profilesetup():
 
 		# Insert into User table with EXPLICIT columns and strict casting
 		try:
-			with get_connection() as conn:
-				with conn.cursor() as cur:
-					cur.execute(
-						"""INSERT INTO users (
-							u_username, u_email, u_password, u_age, u_gender, 
-							u_vegan, u_allergy, u_weight, u_feet, u_inches, 
-							u_bmi, u_activitylevel, u_protein, u_carb, u_fat, 
-							u_fiber, u_calories, u_journey, u_bodyfat, u_status, u_startdate
-						) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", 
-						(
-							str(name), str(email), str(password), int(age), str(gender),
-							str(vegan), str(allergy), float(weight_kg), int(feet), int(inches),
-							int(BMI), str(activity_level), float(protein), float(carb), float(fat),
-							float(fiber), float(calorie), int(journey), float(bodyfat), str(body_status), 
-							str(datetime.today().strftime('%Y-%m-%d'))
-						)
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
+				cur.execute(
+					"""INSERT INTO users (
+						u_username, u_email, u_password, u_age, u_gender, 
+						u_vegan, u_allergy, u_weight, u_feet, u_inches, 
+						u_bmi, u_activitylevel, u_protein, u_carb, u_fat, 
+						u_fiber, u_calories, u_journey, u_bodyfat, u_status, u_startdate
+					) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", 
+					(
+						str(name), str(email), str(password), int(age), str(gender),
+						str(vegan), str(allergy), float(weight_kg), int(feet), int(inches),
+						int(BMI), str(activity_level), float(protein), float(carb), float(fat),
+						float(fiber), float(calorie), int(journey), float(bodyfat), str(body_status), 
+						str(datetime.today().strftime('%Y-%m-%d'))
 					)
-					conn.commit()
-					flash('Successfully Registered')
+				)
+				conn.commit()
+				flash('Successfully Registered')
+			finally:
+				cur.close()
+				conn.close()
 
 		except Exception as e:
 			print(f"Registration Error: {e}")
 			return (f'{e}')
-		finally:
-			if 'conn' in locals():
-				conn.close()
+	
 
 		return redirect(url_for('login'))
 
@@ -1699,18 +1528,16 @@ def profile():
 	if request.method == 'GET':
 		uid = session['uid']
 		try:
-			with get_connection() as conn:
-				db = conn.cursor()
-				db.execute("select * from users where u_id=%s",(uid,))
-				u_info = db.fetchone()
-
-				
-
-				
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
+				cur.execute("select * from users where u_id=%s",(uid,))
+				u_info = cur.fetchone()
+			finally:
+				cur.close()
+				conn.close()
 		except Exception as e:
 			return (f'{e}')
-		finally:
-			conn.close()
 
 		return render_template('profile.html',u_info = u_info)
 
@@ -1871,68 +1698,66 @@ def progress():
 		
 		pw_weight =[]
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
+				# 1. Ensure progress entry exists
 				cur.execute("select * from progress where u_id=%s and p_date=%s",(uid,track_date))
 				data = cur.fetchone()
 				if not data:
 					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)",(session['u_info'][0],track_date,session['u_info'][6]))
 					conn.commit()
+					# Re-fetch after insert
+					cur.execute("select * from progress where u_id=%s and p_date=%s",(uid,track_date))
+					data = cur.fetchone()
 
+				# 2. Progress Logic (seems to append to Lists based on Logic)
+				# data2 logic was iterating but appending 'data[2]' which is weird (looping variable unused?)
 				cur.execute("select * from progress where u_id=%s and p_date=%s",(uid,track_date))
 				data2 = cur.fetchone()	
-				for i in data2:
-					pw_weight.append(data[2])
-					
+				if data2:
+					# Original logic loop over entries... but fetchone returns one row? 
+					# Original: for i in data2: pw_weight.append(data[2])
+					# data2 is a tuple. Iterating tuple appends weight N times (N=columns). 
+					# Use data2 row directly.
+					pw_weight.append(data[2]) 
 
 				cur.execute("select * from progress_week where u_id=%s and pw_num=%s",(uid,weeknum))
 				week_exist = cur.fetchone()
 
 				if not week_exist:
-					
-						
-					cur.execute("insert into progress_week (u_id,pw_num,pw_weight) values (%s,%s,%s)",(session['u_info'][0],weeknum,pw_weight[0]))
-					conn.commit()
+					if pw_weight: # Check if we have a weight
+						cur.execute("insert into progress_week (u_id,pw_num,pw_weight) values (%s,%s,%s)",(session['u_info'][0],weeknum,pw_weight[0]))
+						conn.commit()
 
+				# 3. Fetch Data for Charts
+				cur.execute("select * from progress_week where u_id=%s",(uid,))
+				week_data = cur.fetchall()
+				for i in week_data:
+					weeks.append("Week"+str(i[1]))
+					week_weight.append(i[2])
 
+				for i in days:
+					cur.execute("select * from progress where u_id=%s and p_date=%s",(uid,i))
+					get_weight = cur.fetchall()
+					for row in get_weight:
+						day_weight.append(row[2])
 
-				
-					
-			cur.execute("select * from progress_week where u_id=%s",(uid,))
-			week_data = cur.fetchall()
-			for i in week_data:
-				weeks.append("Week"+str(i[1]))
-				week_weight.append(i[2])
-			for i in days:
-				cur.execute("select * from progress where u_id=%s and p_date=%s",(uid,i))
-				get_weight = cur.fetchall()
-				for i in get_weight:
-					day_weight.append(i[2])
-
-		except Exception as e:
-			return (f'{e}')
-		finally:
-			conn.close()
-		
-		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+				# 4. Fetch Dates for X-Axis (Originally in separate block)
 				cur.execute("select * from progress where u_id=%s",(uid,))
-				dates = cur.fetchall()
-				for i in dates:
-					getdate = datetime.strptime(i[1], '%Y-%m-%d').date()
-					dates = getdate.strftime("%B-%d")
-			
-					display_day.append(dates)
+				dates_data = cur.fetchall()
+				for i in dates_data:
+					getdate_val = datetime.strptime(i[1], '%Y-%m-%d').date()
+					display_day.append(getdate_val.strftime("%B-%d"))
+
+			finally:
+				cur.close()
+				conn.close()
 
 		except Exception as e:
+			print(f"Progress Route Error: {e}")
 			return (f'{e}')
-		finally:
-			conn.close()
-
-		
 			
-
 		return render_template('progress.html',days = display_day[-7:],weeks = weeks[-7:],d_weight = day_weight[-7:],w_weight = week_weight[-7:])
 		
 
@@ -1943,50 +1768,53 @@ def progress():
 def daily_detail():
 	if request.method == 'GET':
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
 				cur.execute("select * from tracking where u_id=%s and track_date=%s",(session['uid'],datetime.today().strftime ('%Y-%m-%d')))
 				i = cur.fetchone()
 
-			# Check if data exists for today
-			if not i:
-				# Return template with error message displayed inline
-				return render_template('daily_detail.html', 
-					date = datetime.today().strftime("%B-%d-%Y"), 
-					breakfast = "", lunch = "", snack = "", dinner = "", 
-					calorie = session['u_info'][17], protein = 0, carb = 0, fat = 0, 
-					consumed = 0, result = "", deficit = "Calorie Deficit: 0kcal", 
-					weight = session['u_info'][6],
-					error_message = "No tracking data found for today. Please track some meals first.")
+				# Check if data exists for today
+				if not i:
+					# Return template with error message displayed inline
+					return render_template('daily_detail.html', 
+						date = datetime.today().strftime("%B-%d-%Y"), 
+						breakfast = "", lunch = "", snack = "", dinner = "", 
+						calorie = session['u_info'][17], protein = 0, carb = 0, fat = 0, 
+						consumed = 0, result = "", deficit = "Calorie Deficit: 0kcal", 
+						weight = session['u_info'][6],
+						error_message = "No tracking data found for today. Please track some meals first.")
 
 
-			getdate = datetime.strptime(i[1], '%Y-%m-%d').date()
-			date = getdate.strftime("%B-%d-%Y")
-			breakfast = i[2]
-			lunch = i[3]
-			snack = i[4]
-			dinner = i[5]
-			calorie = session['u_info'][17]
-			protein = i[7]
-			carb = i[8]
-			fat = i[9]
-			consumed = i[6]
-			deficit = round(Decimal(calorie - i[6]), 2)
-			result = "Reduced "+ str(round(Decimal(consumed/7700),4))+"kg of bodyweight (in theory)"
-			deficits = "Calorie Deficit: "+ str(deficit) +"kcal"
+				getdate = datetime.strptime(i[1], '%Y-%m-%d').date()
+				date = getdate.strftime("%B-%d-%Y")
+				breakfast = i[2]
+				lunch = i[3]
+				snack = i[4]
+				dinner = i[5]
+				calorie = session['u_info'][17]
+				protein = i[7]
+				carb = i[8]
+				fat = i[9]
+				consumed = i[6]
+				deficit = round(Decimal(calorie - i[6]), 2)
+				result = "Reduced "+ str(round(Decimal(consumed/7700),4))+"kg of bodyweight (in theory)"
+				deficits = "Calorie Deficit: "+ str(deficit) +"kcal"
 
-			cur.execute("select * from progress where u_id=%s and p_date=%s",(session['uid'],datetime.today().strftime ('%Y-%m-%d'),))
-			weights = cur.fetchone()
-			if weights:
-				for i in weights:
-					weight = weights[2]
-			else:
-				weight = session['u_info'][6]
+				cur.execute("select * from progress where u_id=%s and p_date=%s",(session['uid'],datetime.today().strftime ('%Y-%m-%d'),))
+				weights = cur.fetchone()
+				if weights:
+					for i in weights:
+						weight = weights[2]
+				else:
+					weight = session['u_info'][6]
+			finally:
+				cur.close()
+				conn.close()
 
 		except Exception as e:
 			return (f'{e}')
-		finally:
-			conn.close()
+		
 		return render_template('daily_detail.html',date = date,
 												   breakfast = breakfast,
 												   lunch = lunch,
@@ -2005,8 +1833,9 @@ def daily_detail():
 		getdate = request.form['date']
 		weight = ""
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
 				cur.execute("select * from tracking where u_id=%s and track_date=%s",(session['uid'],getdate,))
 				i = cur.fetchone()
 				
@@ -2021,10 +1850,6 @@ def daily_detail():
 					weight = session['u_info'][6],
 					error_message = f"No tracking data found for the selected date ({getdate}). Please select a date where you have tracked meals.")
 				
-				print(i[1])
-				
-
-
 				
 				getdate = datetime.strptime(i[1], '%Y-%m-%d').date()
 				date = getdate.strftime("%B-%d-%Y")
@@ -2046,12 +1871,14 @@ def daily_detail():
 				if weights:
 					for i in weights:
 						weight = weights[2]
-				else:
-					weight = session['u_info'][6]
+					
+			finally:
+				cur.close()
+				conn.close()
+				
 		except Exception as e:
 			return (f'{e}')
-		finally:
-			conn.close()
+			
 		return render_template('daily_detail.html',date = date,
 												   breakfast = breakfast,
 												   lunch = lunch,
@@ -2070,85 +1897,73 @@ def daily_detail():
 def weekly_detail():
 	if request.method == 'GET':
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			
+			try:
+				# 1. Fetch weeks available
 				cur.execute("select * from progress_week where u_id=%s",(session['uid'],))
-				u_week = cur.fetchall()
+				u_weeks_available = cur.fetchall()
 				weeks = []
-				days = []
-				track_date = datetime.today().strftime ('%Y-%m-%d')
-				for i in u_week:
-					weeks.append(i[1])
+				for row in u_weeks_available:
+					weeks.append(row[1])
 
+				# 2. Calculate current week number
+				track_date = datetime.today().strftime ('%Y-%m-%d')
 				sdate = datetime.strptime(session['u_info'][-1], '%Y-%m-%d').date()
 				edate = datetime.strptime(track_date, '%Y-%m-%d').date()
 				delta = edate - sdate     
 
+				days = []
 				for i in range(delta.days + 1):
 					day = sdate + timedelta(days=i)
 					days.append(str(day))
 
-		
 				split_list = [days[x:x+7] for x in range(0, len(days), 7)]
 				this_weeknum = split_list.index(split_list[-1])+1
-				print(split_list[this_weeknum-1])
 				
 				calories = []
 				proteins = []
 				fats = []
 				carbs = []
 				
-				try:
-					with get_connection() as conn:
-						cur = conn.cursor()
-						cur.execute("select * from progress_week where u_id=%s and pw_num=%s",(session['uid'],this_weeknum,))
-						wow = cur.fetchone()
-						weight_of_week = wow[2]
-						for i in split_list[this_weeknum-1]:
-							cur.execute("select * from tracking where u_id=%s and track_date=%s",(session['uid'],i,))
-							u_week = cur.fetchall()
-							for i in u_week:
-							
-								calories.append(i[6])
-								proteins.append(i[7])
-								carbs.append(i[8])
-								fats.append(i[9])
+				# 3. Fetch Data for Current Week
+				cur.execute("select * from progress_week where u_id=%s and pw_num=%s",(session['uid'],this_weeknum,))
+				wow = cur.fetchone()
+				weight_of_week = wow[2] if wow else 0 # Handle potential None
+
+				for day_str in split_list[this_weeknum-1]:
+					cur.execute("select * from tracking where u_id=%s and track_date=%s",(session['uid'],day_str,))
+					u_week_data = cur.fetchall()
+					for row in u_week_data:
+						calories.append(row['track_calorie'] or 0)
+						proteins.append(row['track_protein'] or 0)
+						carbs.append(row['track_carb'] or 0)
+						fats.append(row['track_fat'] or 0)
 
 
-						calorie_consumed = sum(calories)
-						
-						required = float(session['u_info'][17])*len(calories)
-						
-						calorie_required = required
-
-						deficit = calorie_required - calorie_consumed
-
-						# Check if we have any tracking data to avoid division by zero
-						if len(calories) == 0:
-							# Return template with error message displayed inline
-							return render_template('weekly_detail.html', weeks = weeks, average_calorie = 0, average_carb = 0, average_fat = 0, average_protein = 0, net_deficit = 0, result = "No data available", average_deficit = 0, week = this_weeknum, weight_week = weight_of_week, error_message = "No tracking data available for this week. Please track some meals first.")
-
-						average_calorie = round(Decimal(sum(calories)/len(calories)),2)
-						average_protein = round(Decimal(sum(proteins)/len(proteins)),2)
-						average_carb = round(Decimal(sum(carbs)/len(carbs)),2)
-						average_fat = round(Decimal(sum(fats)/len(fats)),2)
-						average_deficit = round(Decimal(deficit/len(calories)),2)
-						net_deficit = round(Decimal(deficit),2)
-						loss_weight = round(Decimal(net_deficit/7700),2)
-						result = "Reduced "+ str(loss_weight) +"kg of bodyweight in this whole week (in theory)"
-
-				except Exception as e:
-					return (f'{e}')
-				finally:
-					conn.close()
+				calorie_consumed = sum(calories)
 				
+				# Avoid division by zero if empty
+				count = len(calories) if len(calories) > 0 else 1 
+				required = float(session['u_info'][17]) * count
 				
+				calorie_required = required
+				deficit = calorie_required - calorie_consumed
 
-		except Exception as e:
-			return (f'{e}')
-		finally:
-			conn.close()
-		return render_template('weekly_detail.html',weeks = weeks,
+				if len(calories) == 0:
+					return render_template('weekly_detail.html', weeks = weeks, average_calorie = 0, average_carb = 0, average_fat = 0, average_protein = 0, net_deficit = 0, result = "No data available", average_deficit = 0, week = this_weeknum, weight_week = weight_of_week, error_message = "No tracking data available for this week. Please track some meals first.")
+
+				average_calorie = round(Decimal(sum(calories)/count),2)
+				average_protein = round(Decimal(sum(proteins)/count),2)
+				average_carb = round(Decimal(sum(carbs)/count),2)
+				average_fat = round(Decimal(sum(fats)/count),2)
+				average_deficit = round(Decimal(deficit/count),2)
+				net_deficit = round(Decimal(deficit),2)
+				loss_weight = round(Decimal(net_deficit/7700),2)
+				result = "Reduced "+ str(loss_weight) +"kg of bodyweight in this whole week (in theory)"
+
+				return render_template('weekly_detail.html',weeks = weeks,
 													average_calorie = average_calorie,
 													average_carb = average_carb,
 													average_fat = average_fat,
@@ -2159,92 +1974,86 @@ def weekly_detail():
 													week = this_weeknum,
 													weight_week = weight_of_week
 												    )
+			finally:
+				cur.close()
+				conn.close()
 
+		except Exception as e:
+			print(f"Weekly Detail Error: {e}")
+			return (f'{e}')
 	else:
 		getweek = request.form['weeks']
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			
+			try:
 				cur.execute("select * from progress_week where u_id=%s and pw_num=%s",(session['uid'],getweek))
-				u_week = cur.fetchall()
-				cur.execute("select * from progress_week where u_id=%s",(session['uid'],))
-				u_weeks = cur.fetchall()
-				weeks = []
-				days = []
+				u_week_selected = cur.fetchall() # Renamed to avoid shadowing
 				
-				for i in u_weeks:
-					weeks.append(i[1])
+				cur.execute("select * from progress_week where u_id=%s",(session['uid'],))
+				u_weeks_available = cur.fetchall() # Renamed to avoid shadowing
+				weeks = []
+				
+				for row in u_weeks_available:
+					weeks.append(row[1])
 
 				track_date = datetime.today().strftime ('%Y-%m-%d')
 				sdate = datetime.strptime(session['u_info'][-1], '%Y-%m-%d').date()
 				edate = datetime.strptime(track_date, '%Y-%m-%d').date()
 				delta = edate - sdate     
 
+				days = []
 				for i in range(delta.days + 1):
 					day = sdate + timedelta(days=i)
 					days.append(str(day))
-
 		
 				split_list = [days[x:x+7] for x in range(0, len(days), 7)]
 				this_weeknum = int(getweek)
-				
 				
 				calories = []
 				proteins = []
 				fats = []
 				carbs = []
 				
-				try:
-					with get_connection() as conn:
-						cur = conn.cursor()
-						cur.execute("select * from progress_week where u_id=%s and pw_num=%s",(session['uid'],this_weeknum,))
-						wow = cur.fetchone()
-						weight_of_week = wow[2]
-						for i in split_list[this_weeknum-1]:
-							cur.execute("select * from tracking where u_id=%s and track_date=%s and track_calorie!=%s",(session['uid'],i,0))
-							u_week = cur.fetchall()
-							for i in u_week:
-							
-								calories.append(i[6])
-								proteins.append(i[7])
-								carbs.append(i[8])
-								fats.append(i[9])
+				cur.execute("select * from progress_week where u_id=%s and pw_num=%s",(session['uid'],this_weeknum,))
+				wow = cur.fetchone()
+				weight_of_week = wow['pw_weight'] if wow else 0 # Safe access
 
+				# Logic change: Make sure we check index bounds for split_list
+				if this_weeknum-1 < len(split_list):
+					for day_str in split_list[this_weeknum-1]:
+						# Using explicit names for clarity
+						cur.execute("select * from tracking where u_id=%s and track_date=%s and track_calorie!=%s",(session['uid'],day_str,0))
+						u_week_data = cur.fetchall()
+						for row in u_week_data:
+							calories.append(row['track_calorie'] or 0)
+							proteins.append(row['track_protein'] or 0)
+							carbs.append(row['track_carb'] or 0)
+							fats.append(row['track_fat'] or 0)
+				else:
+					pass # No data for this week range
 
-						calorie_consumed = sum(calories)
-						
-						required = float(session['u_info'][17])*len(calories)
-						
-						calorie_required = required
+				calorie_consumed = sum(calories)
+				count = len(calories) if len(calories) > 0 else 1
+				required = float(session['u_info'][17]) * count
+				calorie_required = required
 
-						deficit = calorie_required - calorie_consumed
+				deficit = calorie_required - calorie_consumed
 
-						# Check if we have any tracking data to avoid division by zero
-						if len(calories) == 0:
-							# Return template with error message displayed inline
-							return render_template('weekly_detail.html', weeks = weeks, average_calorie = 0, average_carb = 0, average_fat = 0, average_protein = 0, net_deficit = 0, result = "No data available", average_deficit = 0, week = getweek, weight_week = weight_of_week, error_message = "No tracking data available for the selected week. Please track some meals first.")
+				if len(calories) == 0:
+					return render_template('weekly_detail.html', weeks = weeks, average_calorie = 0, average_carb = 0, average_fat = 0, average_protein = 0, net_deficit = 0, result = "No data available", average_deficit = 0, week = getweek, weight_week = weight_of_week, error_message = "No tracking data available for the selected week. Please track some meals first.")
 
-						average_calorie = round(Decimal(sum(calories)/len(calories)),2)
-						average_protein = round(Decimal(sum(proteins)/len(proteins)),2)
-						average_carb = round(Decimal(sum(carbs)/len(carbs)),2)
-						average_fat = round(Decimal(sum(fats)/len(fats)),2)
-						average_deficit = round(Decimal(deficit/len(calories)),2)
-						net_deficit = round(Decimal(deficit),2)
-						loss_weight = round(Decimal(net_deficit/7700),2)
-						result = "Reduced "+ str(loss_weight) +"kg of bodyweight in this whole week (in theory)"
-
-				except Exception as e:
-					return (f'{e}')
-				finally:
-					conn.close()
+				average_calorie = round(Decimal(sum(calories)/count),2)
+				average_protein = round(Decimal(sum(proteins)/count),2)
+				average_carb = round(Decimal(sum(carbs)/count),2)
+				average_fat = round(Decimal(sum(fats)/count),2)
+				average_deficit = round(Decimal(deficit/count),2)
+				net_deficit = round(Decimal(deficit),2)
+				loss_weight = round(Decimal(net_deficit/7700),2)
+				result = "Reduced "+ str(loss_weight) +"kg of bodyweight in this whole week (in theory)"
 				
-				
-
-		except Exception as e:
-			return (f'{e}')
-		finally:
-			conn.close()
-		return render_template('weekly_detail.html',weeks = weeks,
+				return render_template('weekly_detail.html',weeks = weeks,
 													average_calorie = average_calorie,
 													average_carb = average_carb,
 													average_fat = average_fat,
@@ -2253,98 +2062,101 @@ def weekly_detail():
 													result = result,
 													average_deficit = average_deficit,
 													week = getweek,
-													weight_week = weight_of_week,
+													weight_week = weight_of_week
 												    )
+
+			finally:
+				cur.close()
+				conn.close()
+
+		except Exception as e:
+			print(f"Weekly Detail POST Error: {e}")
+			return (f'{e}')
 
 
 @app.route("/index", methods = ['GET','POST'])
 def index():
 	if request.method == 'GET':
-
+		weight = 0
 		try:	
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
 				cur.execute("select * from users where u_id=%s",(session['uid'],))
 				u_data = cur.fetchone()
 				if u_data:
 					weight = u_data['u_weight'] if 'u_weight' in u_data else u_data[6]
-				else:
-					weight = 0
-
+			finally:
+				cur.close()
+				conn.close()
 
 		except Exception as e:
+			print(f"Index GET Error: {e}")
 			return (f'{e}')
-		finally:
-			conn.close()
+		
 		return render_template('index.html', weight = weight)
 
 	else:
 		getweight = request.form['weight']
 		try:
-			with get_connection() as conn:
-				cur = conn.cursor()
+			conn = get_connection()
+			cur = conn.cursor()
+			try:
+				# 1. Update User Weight
 				cur.execute("update users set u_weight=%s where u_id=%s",(getweight,session['uid'],))
 				conn.commit()
 
+				# 2. Update/Insert Daily Progress
 				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(getweight,datetime.today().strftime ('%Y-%m-%d'),session['uid'],))
 				if cur.rowcount == 0:
 					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (session['uid'], datetime.today().strftime('%Y-%m-%d'), getweight))
 				conn.commit()
 
-				cur.execute("select * from users where u_id=%s",(session['uid'],))
-				u_data = cur.fetchone()
-				weight = u_data[6]
-
-				days = []
-				weeks = []
+				# 3. Calculate Weekly Weight
 				track_date = datetime.today().strftime ('%Y-%m-%d')
 				sdate = datetime.strptime(session['u_info'][-1], '%Y-%m-%d').date()
 				edate = datetime.strptime(track_date, '%Y-%m-%d').date()
 				delta = edate - sdate     
 
+				days = []
 				for i in range(delta.days + 1):
 					day = sdate + timedelta(days=i)
 					days.append(str(day))
 
 				split_list = [days[x:x+7] for x in range(0, len(days), 7)]
 				this_weeknum = split_list.index(split_list[-1])+1
-				week_weights = []
-				print(this_weeknum)
-				try:
-					with get_connection() as conn:
-						cur = conn.cursor()
-						for i in split_list[this_weeknum-1]:
-							cur.execute("select * from progress where u_id=%s and p_date=%s ",(session['uid'],i,))
-							day_data = cur.fetchall()
-							if day_data:
-								for row in day_data:
-									# Assuming row[2] is weight based on previous code usage
-									week_weights.append(row[2])
-			
-					if len(week_weights) > 0:
-						week_weight = round(sum(week_weights)/len(week_weights))
-					else:
-						# Fallback to current weight if no weights found
-						week_weight = int(getweight)
-
-					# Update or Insert progress_week
-					cur.execute("update progress_week set pw_weight=%s where pw_num=%s and u_id=%s",(week_weight,this_weeknum,session['uid'],))
-					if cur.rowcount == 0:
-						cur.execute("insert into progress_week (u_id, pw_num, pw_weight) values (%s,%s,%s)", (session['uid'], this_weeknum, week_weight))
-					
-					conn.commit()
-
-				except Exception as e:
-					print(f"Error in week calculation: {e}", flush=True)
-				finally:
-					conn.close()
-
 				
+				week_weights = []
+				
+				if this_weeknum-1 < len(split_list):
+					for day_str in split_list[this_weeknum-1]:
+						cur.execute("select * from progress where u_id=%s and p_date=%s ",(session['uid'],day_str,))
+						day_data = cur.fetchall()
+						if day_data:
+							for row in day_data:
+								weight_val = row[2] # p_weight
+								week_weights.append(weight_val)
+		
+				if len(week_weights) > 0:
+					week_weight = round(sum(week_weights)/len(week_weights))
+				else:
+					week_weight = int(getweight)
+
+				# 4. Update Weekly Progress
+				cur.execute("update progress_week set pw_weight=%s where pw_num=%s and u_id=%s",(week_weight,this_weeknum,session['uid'],))
+				if cur.rowcount == 0:
+					cur.execute("insert into progress_week (u_id, pw_num, pw_weight) values (%s,%s,%s)", (session['uid'], this_weeknum, week_weight))
+				
+				conn.commit()
+
+			finally:
+				cur.close()
+				conn.close()
 
 		except Exception as e:
+			print(f"Index POST Error: {e}")
 			return (f'{e}')
-		finally:
-			conn.close()
+			
 		return redirect(url_for('recommend_setup'))
 
 @app.route("/about", methods =['GET'] )
