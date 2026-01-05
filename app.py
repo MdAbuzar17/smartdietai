@@ -903,9 +903,11 @@ def edit_weight():
 						week_weight = int(weight_kg)
 
 					# Update or Insert progress_week
-					cur.execute("update progress_week set pw_weight=%s where pw_num=%s and u_id=%s",(week_weight,this_weeknum,session['uid'],))
+					print("DEBUG week_weight =", week_weight, type(week_weight), flush=True)
+					pw_weight_validated = safe_float(week_weight, "pw_weight")
+					cur.execute("update progress_week set pw_weight=%s where pw_num=%s and u_id=%s",(pw_weight_validated,int(this_weeknum),int(session['uid'])))
 					if cur.rowcount == 0:
-						cur.execute("insert into progress_week (u_id, pw_num, pw_weight) values (%s,%s,%s)", (session['uid'], this_weeknum, week_weight))
+						cur.execute("insert into progress_week (u_id, pw_num, pw_weight) values (%s,%s,%s)", (int(session['uid']), int(this_weeknum), pw_weight_validated))
 					
 					conn.commit()
 
@@ -1734,7 +1736,9 @@ def progress():
 
 				if not week_exist:
 					if pw_weight: # Check if we have a weight
-						cur.execute("insert into progress_week (u_id,pw_num,pw_weight) values (%s,%s,%s)",(session['u_info'][0],weeknum,pw_weight[0]))
+						print("DEBUG pw_weight[0] =", pw_weight[0], type(pw_weight[0]), flush=True)
+						pw_weight_validated = safe_float(pw_weight[0], "pw_weight")
+						cur.execute("insert into progress_week (u_id,pw_num,pw_weight) values (%s,%s,%s)",(int(session['u_info'][0]),int(weeknum),pw_weight_validated))
 						conn.commit()
 
 				# 3. Fetch Data for Charts
@@ -2154,9 +2158,11 @@ def index():
 					week_weight = int(getweight)
 
 				# 4. Update Weekly Progress
-				cur.execute("update progress_week set pw_weight=%s where pw_num=%s and u_id=%s",(week_weight,this_weeknum,session['uid'],))
+				print("DEBUG week_weight =", week_weight, type(week_weight), flush=True)
+				pw_weight_validated = safe_float(week_weight, "pw_weight")
+				cur.execute("update progress_week set pw_weight=%s where pw_num=%s and u_id=%s",(pw_weight_validated,int(this_weeknum),int(session['uid'])))
 				if cur.rowcount == 0:
-					cur.execute("insert into progress_week (u_id, pw_num, pw_weight) values (%s,%s,%s)", (session['uid'], this_weeknum, week_weight))
+					cur.execute("insert into progress_week (u_id, pw_num, pw_weight) values (%s,%s,%s)", (int(session['uid']), int(this_weeknum), pw_weight_validated))
 				
 				conn.commit()
 
