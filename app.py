@@ -846,12 +846,10 @@ def edit_weight():
 				)
 				conn.commit()
 			
-				# Update session info
-				session['u_info'] = [] # Clear and reload
+				# Update session info - store complete user record
 				cur.execute("select * from users where u_id=%s",(session['uid'],))
 				u_info = cur.fetchone()
-				for row in u_info:
-					session['u_info'].append(row)
+				session['u_info'] = list(u_info) if u_info else []
 
 				# SYNC TO DAILY PROGRESS (User Request)
 				# Also update 'progress' table for today so it shows in daily/weekly stats
