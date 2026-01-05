@@ -52,6 +52,12 @@ def get_connection():
         print(f"Error connecting to database: {e}")
         raise e
 
+def safe_float(value, field):
+	try:
+		return float(value)
+	except (TypeError, ValueError):
+		raise ValueError(f"Invalid value for {field}: {value}")
+
 def fix_user_table_name():
     """Rename reserved table 'user' to 'users' if it exists"""
     try:
@@ -851,9 +857,10 @@ def edit_weight():
 				# Also update 'progress' table for today so it shows in daily/weekly stats
 				# SYNC TO DAILY PROGRESS
 				# Explicit casting
-				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(float(weight_kg), str(datetime.today().strftime('%Y-%m-%d')), int(session['uid'])))
+				p_weight = safe_float(weight_kg, "p_weight")
+				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(p_weight, str(datetime.today().strftime('%Y-%m-%d')), int(session['uid'])))
 				if cur.rowcount == 0:
-					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (int(session['uid']), str(datetime.today().strftime('%Y-%m-%d')), float(weight_kg)))
+					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (int(session['uid']), str(datetime.today().strftime('%Y-%m-%d')), p_weight))
 				conn.commit()
 				
 				# Update Weekly Average Logic (duplicated from index route)
@@ -1706,7 +1713,8 @@ def progress():
 				cur.execute("select * from progress where u_id=%s and p_date=%s",(uid,track_date))
 				data = cur.fetchone()
 				if not data:
-					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)",(session['u_info'][0],track_date,session['u_info'][6]))
+					p_weight = safe_float(session['u_info'][6], "p_weight")
+					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)",(session['u_info'][0],track_date,p_weight))
 					conn.commit()
 					# Re-fetch after insert
 					cur.execute("select * from progress where u_id=%s and p_date=%s",(uid,track_date))
@@ -2111,9 +2119,10 @@ def index():
 				conn.commit()
 
 				# 2. Update/Insert Daily Progress
-				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(getweight,datetime.today().strftime ('%Y-%m-%d'),session['uid'],))
+				p_weight = safe_float(getweight, "p_weight")
+				cur.execute("update progress set p_weight=%s where p_date=%s and u_id=%s",(p_weight,datetime.today().strftime ('%Y-%m-%d'),session['uid'],))
 				if cur.rowcount == 0:
-					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (session['uid'], datetime.today().strftime('%Y-%m-%d'), getweight))
+					cur.execute("insert into progress (u_id,p_date,p_weight) values (%s,%s,%s)", (session['uid'], datetime.today().strftime('%Y-%m-%d'), p_weight))
 				conn.commit()
 
 				# 3. Calculate Weekly Weight
