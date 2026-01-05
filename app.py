@@ -745,23 +745,36 @@ def edit_weight():
 													vegan = vegan,
 													allergy = allergy)
 	else:
-		name = request.form['name']
-		age = int(request.form['age'])
-		weight_kg = int(request.form['weight'])
-		email = request.form['email']
-		password = session['u_pass'] # Keep existing password
-		gender = request.form['gender']
-		feet = int(request.form['feet'])
-		inches = int(request.form['inches'])
-		vegan = request.form['vegan']
-		allergy = request.form['allergy']
-		activity_level = request.form['activity']
+		name = request.form.get('name')
+		email = request.form.get('email')
+		# password = session['u_pass'] # handled internally
+		
+		try:
+			age = int(request.form.get('age', 0))
+			weight_kg = float(request.form.get('weight', 0))
+			feet = int(request.form.get('feet', 0))
+			inches = int(request.form.get('inches', 0))
+		except ValueError:
+			flash("Invalid numeric values provided.")
+			return redirect(url_for('profile'))
+
+		gender = request.form.get('gender')
+		vegan = request.form.get('vegan')
+		allergy = request.form.get('allergy')
+		activity_level = request.form.get('activity')
+		
+		# Validation
+		if not all([name, email, gender, vegan, allergy, activity_level]):
+			flash("Missing required fields.")
+			return redirect(url_for('profile'))
 
 		height_bmi = int((feet * 12) + inches)
 		height_m = height_bmi * 0.0254
 		
 		# Metric BMI: kg / m^2
-		BMI = weight_kg / (height_m * height_m)
+		BMI = 0
+		if height_m > 0:
+			BMI = weight_kg / (height_m * height_m)
 
 		bmr = 0
 		bodyfat = 0
@@ -987,105 +1000,86 @@ def add_successful():
 	else:
 		# Handle errors, if any
 		print("Error: Failed to fetch data from Spoonacular")
-		flash(f"Could not find food item. Please Check Spelling.")
-		return render_template('add_food.html', mealtime=mealtime)
+		return jsonify({'error': 'Failed to fetch data from Spoonacular'}), 400
+	
+	final_data = {}
+	
 	try:
 		conn = get_connection()
 		cur = conn.cursor()
 		try:
-				
+			# NOTE: Using RETURNING * to get the updated row
+			
+			track_date = str(datetime.today().strftime('%Y-%m-%d'))
+			
 			cur.execute("select * from tracking where track_date=%s and u_id=%s",(track_date,uid,))
 			track_info= cur.fetchall()
-		
+			
+			if not track_info:
+				# Should ideally create if not exists, but assuming track logic handles it or it exists
+				# For now, if no track info, we can't update.
+				return jsonify({'error': 'No tracking record found for today'}), 404
 
-			calorie = round(Decimal(track_info[0][6]), 2)+round(Decimal(food[3]), 2)
-			protein = round(Decimal(track_info[0][7]), 2)+round(Decimal(food[4]), 2)
-			carb = round(Decimal(track_info[0][8]), 2)+round(Decimal(food[5]), 2)
-			fat = round(Decimal(track_info[0][9]), 2)+round(Decimal(food[6]), 2)
+			current_calories = track_info[0][6] if track_info[0][6] else 0
+			current_protein = track_info[0][7] if track_info[0][7] else 0
+			current_carb = track_info[0][8] if track_info[0][8] else 0
+			current_fat = track_info[0][9] if track_info[0][9] else 0
+
+			calorie = round(Decimal(current_calories), 2)+round(Decimal(food[3]), 2)
+			protein = round(Decimal(current_protein), 2)+round(Decimal(food[4]), 2)
+			carb = round(Decimal(current_carb), 2)+round(Decimal(food[5]), 2)
+			fat = round(Decimal(current_fat), 2)+round(Decimal(food[6]), 2)
 				
+			meal_input = ""
+			col_name = ""
 			
 			if mealtime == "Breakfast":
 				meal_input = (track_info[0][2] or "") + food[0] +","
-				cur.execute("update tracking set track_breakfast=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
-				conn.commit()
-
-
-			if mealtime == "Lunch":
+				col_name = "track_breakfast"
+			elif mealtime == "Lunch":
 				meal_input = (track_info[0][3] or "") + food[0] +","
-				cur.execute("update tracking set track_lunch=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
-				conn.commit()
-
-			if mealtime == "Snack":
+				col_name = "track_lunch"
+			elif mealtime == "Snack":
 				meal_input = (track_info[0][4] or "") + food[0] +","
-				cur.execute("update tracking set track_snack=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
-				conn.commit()
-
-			if mealtime == "Dinner":
+				col_name = "track_snack"
+			elif mealtime == "Dinner":
 				meal_input = (track_info[0][5] or "") + food[0] +","
-				cur.execute("update tracking set track_dinner=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s", (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
+				col_name = "track_dinner"
+			
+			if col_name:
+				query = f"update tracking set {col_name}=%s,track_calorie=%s,track_protein=%s,track_carb=%s,track_fat=%s where track_date=%s and u_id=%s RETURNING *"
+				cur.execute(query, (str(meal_input),float(calorie),float(protein),float(carb),float(fat),str(track_date),int(uid)))
+				updated_row = cur.fetchone()
 				conn.commit()
-			
-			
+				
+				if updated_row:
+					# Map row to simple dict structure for JSON response
+					# Columns: 0:id, 1:date, 2:bf, 3:ln, 4:sn, 5:dn, 6:cal, 7:prot, 8:carb, 9:fat, 10:uid
+					final_data = {
+						'uid': updated_row[10],
+						'date': str(updated_row[1]),
+						'breakfast': updated_row[2],
+						'lunch': updated_row[3],
+						'snack': updated_row[4],
+						'dinner': updated_row[5],
+						'calories': float(updated_row[6]),
+						'protein': float(updated_row[7]),
+						'carbs': float(updated_row[8]),
+						'fat': float(updated_row[9])
+					}
 
 		finally:
 			cur.close()
 			conn.close()
 
 	except Exception as e:
-		return (f'{e}')
+		print(f"Add Successful Error: {e}")
+		return jsonify({'error': str(e)}), 500
 
-	
-	if mealtime == "Breakfast":
-		
-		session['bf_numbers'] = [0,0,0,0]
-		session['bf_meal'] = food_list(bf_meal,food)
-		
-		for i in session['bf_meal']:
-					
-			session['bf_numbers'][0]+=round(Decimal(i[3]), 2)
-			session['bf_numbers'][1]+=round(Decimal(i[4]), 2)
-			session['bf_numbers'][2]+=round(Decimal(i[5]), 2)
-			session['bf_numbers'][3]+=round(Decimal(i[6]), 2)
-		print(session['bf_meal'])
+	# Return the JSON response
+	return jsonify(final_data)
 				
 
-	if mealtime == "Lunch":
-		session['lunch_numbers'] = [0,0,0,0]
-		session['lunch_meal'] = food_list(lunch_meal,food)
-
-		for i in session['lunch_meal']:			
-			session['lunch_numbers'][0]+=round(Decimal(i[3]), 2)
-			session['lunch_numbers'][1]+=round(Decimal(i[4]), 2)
-			session['lunch_numbers'][2]+=round(Decimal(i[5]), 2)
-			session['lunch_numbers'][3]+=round(Decimal(i[6]), 2)
-			
-	
-	if mealtime == "Snack":
-		session['snack_numbers'] = [0,0,0,0]
-		session['snack_meal'] = food_list(snack_meal,food)
-
-		for i in session['snack_meal']:
-					
-			session['snack_numbers'][0]+=round(Decimal(i[3]), 2)
-			session['snack_numbers'][1]+=round(Decimal(i[4]), 2)
-			session['snack_numbers'][2]+=round(Decimal(i[5]), 2)
-			session['snack_numbers'][3]+=round(Decimal(i[6]), 2)
-
-	if mealtime == "Dinner":
-		session['dinner_numbers'] = [0,0,0,0]
-		session['dinner_meal'] = food_list(dinner_meal,food)
-
-		for i in session['dinner_meal']:
-					
-			session['dinner_numbers'][0]+=round(Decimal(i[3]), 2)
-			session['dinner_numbers'][1]+=round(Decimal(i[4]), 2)
-			session['dinner_numbers'][2]+=round(Decimal(i[5]), 2)
-			session['dinner_numbers'][3]+=round(Decimal(i[6]), 2)
-	
-
-	return render_template('add_food.html',mealtime=mealtime)
-
-@app.route("/track", methods = ['GET','POST'])
 @app.route("/track", methods = ['GET','POST'])
 def track():
 	if request.method == 'GET':
@@ -1424,24 +1418,36 @@ def profilesetup():
 		return render_template('profilesetup.html')
 
 	else:
-		name = request.form['name']
-		email = request.form['email']
-		passwd = request.form['password']
+		name = request.form.get('name')
+		email = request.form.get('email')
+		passwd = request.form.get('password')
 		password = pwd_encode(passwd)
-		age = int(request.form['age'])
-		gender = request.form['gender']
-		vegan = request.form['vegan']
-		allergy = request.form['allergy']
-		weight_kg = int(request.form['weight'])
-		feet = int(request.form['feet'])
-		inches = int(request.form['inches'])
-		activity_level = request.form['activity']
+		
+		# Validate Numeric Inputs
+		try:
+			age = int(request.form.get('age', 0))
+			weight_kg = float(request.form.get('weight', 0))
+			feet = int(request.form.get('feet', 0))
+			inches = int(request.form.get('inches', 0))
+		except ValueError:
+			flash('Invalid numeric input for age, weight, or height.')
+			return redirect(url_for('profilesetup'))
+
+		gender = request.form.get('gender')
+		vegan = request.form.get('vegan')
+		allergy = request.form.get('allergy')
+		activity_level = request.form.get('activity')
+		
 		height_bmi = int((feet * 12) + inches)
 		height_m = height_bmi * 0.0254
+		
 		bmr = 0
 		body_status = ""
 		# Metric BMI: kg/m^2
-		BMI =  weight_kg / (height_m * height_m)
+		BMI = 0
+		if height_m > 0:
+			BMI =  weight_kg / (height_m * height_m)
+		
 		bodyfat = 0
 
 		if gender == "male":
@@ -1485,11 +1491,7 @@ def profilesetup():
 		fat = int(((calorie-500) * 0.30)/9)
 		fiber = int(calorie/1000*14)
 		journey = 1
-		breakfast = int((calorie-500) * 0.30)
-		snack = int((calorie-500)* 0.10)
-		lunch = int((calorie-500)* 0.35)
-		dinner = int((calorie-500)* 0.25)
-
+		
 		# Insert into User table with EXPLICIT columns and strict casting
 		try:
 			conn = get_connection()
@@ -1520,7 +1522,6 @@ def profilesetup():
 			print(f"Registration Error: {e}")
 			return (f'{e}')
 	
-
 		return redirect(url_for('login'))
 
 @app.route("/profile", methods = ['GET','POST'])
@@ -2097,7 +2098,10 @@ def index():
 		return render_template('index.html', weight = weight)
 
 	else:
-		getweight = request.form['weight']
+		getweight = float(request.form.get('weight', 0))
+		if getweight <= 0:
+			flash("Invalid weight value.")
+			return redirect(url_for('index'))
 		try:
 			conn = get_connection()
 			cur = conn.cursor()

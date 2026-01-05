@@ -10,5 +10,3 @@ uploads/
 venv/
 env/
 .DS_Store
-*.pt
-*.pkl
